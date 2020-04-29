@@ -1,7 +1,7 @@
 root = true
 
 [*.cs]
-indent_style = tag
+indent_style = tab
 indent_size = 4
 end_of_line = crlf
 insert_final_newline = true
