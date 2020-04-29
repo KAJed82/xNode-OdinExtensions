@@ -29,7 +29,7 @@ namespace XNodeEditor.Odin
 			// Don't try to fold that were resolved by my magic
 			if ( property.Parent != null )
 			{
-				if ( property.Parent.ChildResolver is IDynamicPortListNodePropertyResolverWithPorts )
+				if ( property.Parent.ChildResolver is IDynamicDataNodePropertyPortResolver )
 					return false;
 				if ( property.Parent.ChildResolver is IDynamicNoDataNodePropertyPortResolver )
 					return false;

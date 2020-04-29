@@ -12,7 +12,7 @@ namespace XNodeEditor.Odin
 			if ( property.GetAttribute<HideConnectionLabelAttribute>() != null )
 				return false;
 
-			return property.Parent != null && property.Parent.ChildResolver is IDynamicPortListNodePropertyResolverWithPorts;
+			return property.Parent != null && property.Parent.ChildResolver is IDynamicDataNodePropertyPortResolver;
 		}
 
 		protected override void DrawPropertyLayout( GUIContent label )

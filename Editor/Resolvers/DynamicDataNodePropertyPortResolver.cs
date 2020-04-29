@@ -1,6 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -16,21 +14,18 @@ using static XNode.Node;
 
 namespace XNodeEditor.Odin
 {
-	public interface IDynamicPortListNodePropertyResolver : INodePropertyPortResolver
-	{
-		string FieldName { get; }
+    public interface IDynamicDataNodePropertyPortResolver : INodePropertyPortResolver
+    {
+        string FieldName { get; }
 
-		void UpdateDynamicPorts();
-	}
+        void UpdateDynamicPorts();
 
-	public interface IDynamicPortListNodePropertyResolverWithPorts : IDynamicPortListNodePropertyResolver
-	{
-		List<NodePort> DynamicPorts { get; }
+        List<NodePort> DynamicPorts { get; }
 	}
 
 	[ResolverPriority( 20 )]
 	// I want this to pass through sometimes
-	public class DynamicDataNodePropertyPortResolver<TList, TElement> : StrongListPropertyResolver<TList, TElement>, IDynamicPortListNodePropertyResolverWithPorts
+	public class DynamicDataNodePropertyPortResolver<TList, TElement> : StrongListPropertyResolver<TList, TElement>, IDynamicDataNodePropertyPortResolver
 		where TList : IList<TElement>
 	{
 		public override bool CanResolveForPropertyFilter( InspectorProperty property )
@@ -292,78 +287,5 @@ namespace XNodeEditor.Odin
 				base.Clear( collection );
 		}
 		#endregion
-	}
-
-	public class DynamicDataNodePropertyPortAttributeProcessors<TList, TElement> : OdinAttributeProcessor<TList>
-		where TList : IList<TElement>
-	{
-		public override bool CanProcessSelfAttributes( InspectorProperty property )
-		{
-			if ( !NodeEditor.InNodeEditor )
-				return false;
-
-			var inputAttribute = property.GetAttribute<InputAttribute>();
-			if ( inputAttribute != null )
-				return inputAttribute.dynamicPortList;
-
-			var outputAttribute = property.GetAttribute<OutputAttribute>();
-			if ( outputAttribute != null )
-				return outputAttribute.dynamicPortList;
-
-			return false;
-		}
-
-		public override void ProcessSelfAttributes( InspectorProperty property, List<Attribute> attributes )
-		{
-			var listDrawerAttributes = attributes.GetAttribute<ListDrawerSettingsAttribute>();
-			if ( listDrawerAttributes == null )
-			{
-				listDrawerAttributes = new ListDrawerSettingsAttribute();
-				attributes.Add( listDrawerAttributes );
-			}
-
-			listDrawerAttributes.Expanded = true;
-			listDrawerAttributes.ShowPaging = false;
-		}
-	}
-
-	[DrawerPriority( 0, 0, 1 )]
-	public class DynamicDataNodePropertyPortFoldDrawer<TList, TElement> : OdinValueDrawer<TList>
-		where TList : IList<TElement>
-
-	{
-		protected override bool CanDrawValueProperty( InspectorProperty property )
-		{
-			if ( !NodeEditor.InNodeEditor )
-				return false;
-
-			if ( property.GetAttribute<DontFoldAttribute>() != null )
-				return false;
-
-			if ( property.ParentValueProperty != null && property.ParentValueProperty.GetAttribute<DontFoldAttribute>() != null )
-				return false;
-
-			var resolver = property.ChildResolver as IDynamicPortListNodePropertyResolverWithPorts;
-			return resolver != null && resolver.IsDynamicPortList;
-		}
-
-		protected bool isVisible = false;
-
-		protected override void DrawPropertyLayout( GUIContent label )
-		{
-			var resolver = Property.ChildResolver as IDynamicPortListNodePropertyResolverWithPorts;
-
-			if ( Event.current.type == EventType.Layout )
-			{
-				isVisible = !resolver.Node.folded;
-				isVisible |= resolver.ShowBackingValue == ShowBackingValue.Always;
-				isVisible |= resolver.DynamicPorts.Any( x => x.IsConnected );
-			}
-
-			if ( !isVisible )
-				return;
-
-			CallNextDrawer( label );
-		}
 	}
 }

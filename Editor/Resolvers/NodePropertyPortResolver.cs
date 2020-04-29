@@ -14,19 +14,6 @@ using static XNode.Node;
 
 namespace XNodeEditor.Odin
 {
-	public interface INodePropertyPortResolver
-	{
-		Node Node { get; }
-		NodePort Port { get; }
-
-		bool IsInput { get; }
-
-		ShowBackingValue ShowBackingValue { get; }
-		ConnectionType ConnectionType { get; }
-		TypeConstraint TypeConstraint { get; }
-		bool IsDynamicPortList { get; }
-	}
-
 	public interface ISimpleNodePropertyPortResolver : INodePropertyPortResolver { }
 
 	// This only works for simple types that wouldn't normally have children
@@ -133,7 +120,7 @@ namespace XNodeEditor.Odin
 			}
 
 			// Resolved by one of the dynamic port list resolvers
-			if ( property.ParentValueProperty != null && property.ParentValueProperty.ChildResolver is IDynamicPortListNodePropertyResolverWithPorts )
+			if ( property.ParentValueProperty != null && property.ParentValueProperty.ChildResolver is IDynamicDataNodePropertyPortResolver )
 				return true;
 
 			return false;
@@ -153,16 +140,16 @@ namespace XNodeEditor.Odin
 
 		public bool IsInput { get; private set; }
 
-		public IDynamicPortListNodePropertyResolverWithPorts ParentNoDataResolver { get; private set; }
+		public IDynamicDataNodePropertyPortResolver ParentNoDataResolver { get; private set; }
 
 		public InspectorPropertyInfo PortInfo { get; private set; }
 
 		protected override void Initialize()
 		{
 			Node = Property.Tree.WeakTargets.FirstOrDefault() as Node;
-			if ( Property.ParentValueProperty != null && Property.ParentValueProperty.ChildResolver is IDynamicPortListNodePropertyResolverWithPorts )
+			if ( Property.ParentValueProperty != null && Property.ParentValueProperty.ChildResolver is IDynamicDataNodePropertyPortResolver )
 			{
-				ParentNoDataResolver = Property.ParentValueProperty.ChildResolver as IDynamicPortListNodePropertyResolverWithPorts;
+				ParentNoDataResolver = Property.ParentValueProperty.ChildResolver as IDynamicDataNodePropertyPortResolver;
 				var fieldName = $"{ParentNoDataResolver.FieldName} {Property.Index}";
 				Port = Node.GetPort( fieldName );
 

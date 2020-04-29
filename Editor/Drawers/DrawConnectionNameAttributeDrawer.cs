@@ -25,7 +25,7 @@ namespace XNodeEditor.Odin
 			if ( !NodeEditor.InNodeEditor )
 				return false;
 
-			return property.Parent != null && property.Parent.ChildResolver is IDynamicPortListNodePropertyResolverWithPorts &&
+			return property.Parent != null && property.Parent.ChildResolver is IDynamicDataNodePropertyPortResolver &&
 				property.ChildResolver is ISimpleNodePropertyPortResolver;
 		}
 
