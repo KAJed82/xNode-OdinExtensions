@@ -54,7 +54,6 @@ namespace XNodeEditor.Odin
 			return false;
 		}
 
-		[MethodImpl( MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining )]
 		protected override void Initialize()
 		{
 			Node = Property.Tree.WeakTargets.FirstOrDefault() as Node;
