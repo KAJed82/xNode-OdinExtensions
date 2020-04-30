@@ -127,7 +127,8 @@ namespace XNodeEditor.Odin
 					node, // Needed?
 					nodePortInfo.ShowBackingValue,
 					nodePortInfo.IsDynamicPortList,
-					nodePortInfo.IsInput
+					nodePortInfo.IsInput,
+					noDataResolver == null
 				);
 
 				childPortInfo = InspectorPropertyInfo.CreateValue(

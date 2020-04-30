@@ -81,6 +81,8 @@ namespace XNodeEditor.Odin
 				isVisible |= nodePortInfo.Port.IsDynamic; // Dynamics will be folded somewhere else
 				isVisible |= nodePortInfo.Port.IsConnected;
 				isVisible |= dontFold;
+
+				drawValue &= nodePortInfo.HasValue;
 			}
 
 			if ( !isVisible )
@@ -164,6 +166,8 @@ namespace XNodeEditor.Odin
 				isVisible |= nodePortInfo.Port.IsDynamic; // Dynamics will be folded somewhere else
 				isVisible |= nodePortInfo.Port.IsConnected;
 				isVisible |= dontFold;
+
+				drawValue &= nodePortInfo.HasValue;
 			}
 
 			if ( !isVisible )
