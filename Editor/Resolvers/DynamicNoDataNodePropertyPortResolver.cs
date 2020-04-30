@@ -19,6 +19,7 @@ namespace XNodeEditor.Odin
 		void UpdateDynamicPorts();
 	}
 
+	[OdinDontRegister]
 	[ResolverPriority( 15 )]
 	public class DynamicNoDataNodePropertyPortResolver<TValue> : OdinPropertyResolver<TValue>, IDynamicNoDataNodePropertyPortResolver
 	{

@@ -3,7 +3,11 @@
     "references": [
         "XNode",
         "XNodeEditor",
-        "XNodeOdin"
+        "XNodeOdin",
+        "Sirenix.OdinInspector.Editor",
+        "Sirenix.Utilities.Editor",
+        "Sirenix.OdinInspector.Attributes",
+        "Sirenix.Utilities"
     ],
     "includePlatforms": [
         "Editor"

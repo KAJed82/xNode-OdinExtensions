@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.Serialization;
 
 using Sirenix.OdinInspector.Editor;
-using Sirenix.OdinInspector.Editor.TypeSearch;
 using Sirenix.Utilities;
+
+using UnityEngine;
 
 using XNode;
 
@@ -14,121 +13,17 @@ using static XNode.Node;
 
 namespace XNodeEditor.Odin
 {
-	public interface ISimpleNodePropertyPortResolver : INodePropertyPortResolver { }
-
-	// This only works for simple types that wouldn't normally have children
-	[ResolverPriority( 1000000 )]
-	public class NodePropertyPortResolver<T> : OdinPropertyResolver<T>, ISimpleNodePropertyPortResolver
+	public interface INodePortResolver
 	{
-		#region Resolver Helpers
-		private static TypeSearchIndex s_ResolverSearchIndex;
-		public static TypeSearchIndex ResolverSearchIndex
-		{
-			get
-			{
-				if ( s_ResolverSearchIndex == null )
-				{
-					var searchIndexField = typeof( DefaultOdinPropertyResolverLocator )
-							.FindMember()
-							.IsStatic()
-							.HasReturnType<TypeSearchIndex>()
-							.IsNamed( "SearchIndex" )
-							.GetMember<FieldInfo>();
+		NodePortInfo GetNodePortInfo( NodePort port );
+		NodePortInfo GetNodePortInfo( InspectorPropertyInfo sourceProperty );
+	}
 
-					s_ResolverSearchIndex = searchIndexField.GetValue( null ) as TypeSearchIndex;
-				}
-				return s_ResolverSearchIndex;
-			}
-		}
-		private static Dictionary<Type, OdinPropertyResolver> resolverEmptyInstanceMap = new Dictionary<Type, OdinPropertyResolver>( FastTypeComparer.Instance );
-		private static readonly List<TypeSearchResult[]> QueryResultsList = new List<TypeSearchResult[]>();
-		private static readonly List<TypeSearchResult> MergedSearchResultsList = new List<TypeSearchResult>();
-		private OdinPropertyResolver GetEmptyResolverInstance( Type resolverType )
-		{
-			OdinPropertyResolver result;
-			if ( !resolverEmptyInstanceMap.TryGetValue( resolverType, out result ) )
-			{
-				result = (OdinPropertyResolver)FormatterServices.GetUninitializedObject( resolverType );
-				resolverEmptyInstanceMap[resolverType] = result;
-			}
-			return result;
-		}
+	public class NodePortInfo
+	{
+		public InspectorPropertyInfo SourcePropertyInfo { get; private set; }
 
-		/// <summary>
-		/// Gets an <see cref="OdinPropertyResolver"/> instance for the specified property.
-		/// </summary>
-		/// <param name="property">The property to get an <see cref="OdinPropertyResolver"/> instance for.</param>
-		/// <returns>An instance of <see cref="OdinPropertyResolver"/> to resolver the specified property.</returns>
-		public OdinPropertyResolver GetNextResolver( InspectorProperty property, OdinPropertyResolver ignoredResolver )
-		{
-			if ( property.Tree.IsStatic && property == property.Tree.SecretRootProperty )
-			{
-				return OdinPropertyResolver.Create( typeof( StaticRootPropertyResolver<> ).MakeGenericType( property.ValueEntry.TypeOfValue ), property );
-			}
-
-			var queries = QueryResultsList;
-			queries.Clear();
-
-			queries.Add( ResolverSearchIndex.GetMatches( Type.EmptyTypes ) );
-
-			Type typeOfValue = property.ValueEntry != null ? property.ValueEntry.TypeOfValue : null;
-
-			if ( typeOfValue != null )
-			{
-				queries.Add( ResolverSearchIndex.GetMatches( typeOfValue ) );
-
-				for ( int i = 0; i < property.Attributes.Count; i++ )
-				{
-					queries.Add( ResolverSearchIndex.GetMatches( typeOfValue, property.Attributes[i].GetType() ) );
-				}
-			}
-
-			TypeSearchIndex.MergeQueryResultsIntoList( queries, MergedSearchResultsList );
-
-			for ( int i = 0; i < MergedSearchResultsList.Count; i++ )
-			{
-				var info = MergedSearchResultsList[i];
-				if ( info.MatchedType == ignoredResolver.GetType() )
-					continue;
-
-				if ( GetEmptyResolverInstance( info.MatchedType ).CanResolveForPropertyFilter( property ) )
-				{
-					return OdinPropertyResolver.Create( info.MatchedType, property );
-				}
-			}
-
-			return OdinPropertyResolver.Create<EmptyPropertyResolver>( property );
-		}
-		#endregion
-
-		public override bool CanResolveForPropertyFilter( InspectorProperty property )
-		{
-			if ( !NodeEditor.InNodeEditor )
-				return false;
-
-			if ( property.Info.GetMemberInfo() != null && property.Info.GetMemberInfo().DeclaringType.ImplementsOrInherits( typeof( Node ) ) ) // It's at least a member!
-			{
-				var inputAttribute = property.GetAttribute<InputAttribute>();
-				if ( inputAttribute != null )
-					return !inputAttribute.dynamicPortList;
-
-				var outputAttribute = property.GetAttribute<OutputAttribute>();
-				if ( outputAttribute != null )
-					return !outputAttribute.dynamicPortList;
-
-				return false;
-			}
-
-			// Resolved by one of the dynamic port list resolvers
-			if ( property.ParentValueProperty != null && property.ParentValueProperty.ChildResolver is IDynamicDataNodePropertyPortResolver )
-				return true;
-
-			return false;
-		}
-
-		protected override bool AllowNullValues => true;
-
-		protected OdinPropertyResolver<T> backupResolver;
+		public string BaseFieldName { get; private set; }
 
 		public Node Node { get; private set; }
 		public NodePort Port { get; private set; }
@@ -140,103 +35,158 @@ namespace XNodeEditor.Odin
 
 		public bool IsInput { get; private set; }
 
-		public IDynamicDataNodePropertyPortResolver ParentNoDataResolver { get; private set; }
-
-		public InspectorPropertyInfo PortInfo { get; private set; }
-
-		protected override void Initialize()
+		public NodePortInfo(
+			InspectorPropertyInfo sourcePropertyInfo,
+			string baseFieldName,
+			Node node, // Needed?
+			NodePort port,
+			ShowBackingValue showBackingValue,
+			ConnectionType connectionType,
+			TypeConstraint typeConstraint,
+			bool isDynamicPortList,
+			bool isInput
+		)
 		{
-			Node = Property.Tree.WeakTargets.FirstOrDefault() as Node;
-			if ( Property.ParentValueProperty != null && Property.ParentValueProperty.ChildResolver is IDynamicDataNodePropertyPortResolver )
-			{
-				ParentNoDataResolver = Property.ParentValueProperty.ChildResolver as IDynamicDataNodePropertyPortResolver;
-				var fieldName = $"{ParentNoDataResolver.FieldName} {Property.Index}";
-				Port = Node.GetPort( fieldName );
-
-				ShowBackingValue = ParentNoDataResolver.ShowBackingValue;
-				ConnectionType = ParentNoDataResolver.ConnectionType;
-				TypeConstraint = ParentNoDataResolver.TypeConstraint;
-				IsDynamicPortList = false;
-				IsInput = ParentNoDataResolver.IsInput;
-
-				// We expected to find a port but didn't let's fix it
-				if ( Port == null )
-				{
-					if ( IsInput )
-						Port = Node.AddDynamicInput( typeof( T ), ConnectionType, TypeConstraint, fieldName );
-					else
-						Port = Node.AddDynamicOutput( typeof( T ), ConnectionType, TypeConstraint, fieldName );
-				}
-			}
-			else
-			{
-				Port = Node.GetPort( Property.Name );
-
-				var inputAttribute = Property.GetAttribute<InputAttribute>();
-				var outputAttribute = Property.GetAttribute<OutputAttribute>();
-				if ( inputAttribute != null )
-				{
-					ShowBackingValue = inputAttribute.backingValue;
-					ConnectionType = inputAttribute.connectionType;
-					TypeConstraint = inputAttribute.typeConstraint;
-					IsDynamicPortList = inputAttribute.dynamicPortList;
-					IsInput = true;
-				}
-				else if ( outputAttribute != null )
-				{
-					ShowBackingValue = outputAttribute.backingValue;
-					ConnectionType = outputAttribute.connectionType;
-					TypeConstraint = outputAttribute.typeConstraint;
-					IsDynamicPortList = outputAttribute.dynamicPortList;
-					IsInput = false;
-				}
-			}
-
-			PortInfo = InspectorPropertyInfo.CreateValue(
-				NodePropertyPort.NodePortPropertyName,
-				0,
-				Property.ValueEntry.SerializationBackend,
-				new GetterSetter<T, NodePort>(
-					( ref T owner ) => Port,
-					( ref T owner, NodePort value ) => { }
-				)
-			);
-
-			// Grab the next correct resolver and let it do it's thing
-			backupResolver = GetNextResolver( Property, this ) as OdinPropertyResolver<T>;
-		}
-
-		public override int ChildNameToIndex( string name )
-		{
-			if ( backupResolver == null )
-				return 1;
-
-			if ( name == NodePropertyPort.NodePortPropertyName )
-				return backupResolver.ChildCount;
-
-			return backupResolver.ChildNameToIndex( name );
-		}
-
-		private InspectorPropertyInfo info;
-
-		public override InspectorPropertyInfo GetChildInfo( int childIndex )
-		{
-			if ( backupResolver == null )
-				return PortInfo;
-
-			if ( childIndex == backupResolver.ChildCount )
-				return PortInfo;
-
-			return backupResolver.GetChildInfo( childIndex );
-		}
-
-		protected override int GetChildCount( T value )
-		{
-			if ( backupResolver == null )
-				return 1;
-
-			return backupResolver.ChildCount + 1;
+			SourcePropertyInfo = sourcePropertyInfo;
+			BaseFieldName = baseFieldName;
+			Node = node;
+			Port = port;
+			ShowBackingValue = showBackingValue;
+			ConnectionType = connectionType;
+			TypeConstraint = typeConstraint;
+			IsDynamicPortList = isDynamicPortList;
+			IsInput = isInput;
 		}
 	}
 
+	// Invert the pattern
+	// Inject this property into a node port holder
+	[ResolverPriority( 1000001 )]
+	public class NewNodePropertyPortResolver<T> : BaseMemberPropertyResolver<T>, IDisposable, INodePortResolver
+		where T : Node
+	{
+		private List<OdinPropertyProcessor> processors;
+
+		public virtual void Dispose()
+		{
+			if ( this.processors != null )
+			{
+				for ( int i = 0; i < this.processors.Count; i++ )
+				{
+					var disposable = this.processors[i] as IDisposable;
+
+					if ( disposable != null )
+					{
+						disposable.Dispose();
+					}
+				}
+			}
+		}
+
+		protected Dictionary<InspectorPropertyInfo, NodePortInfo> propertyInfoToNodePropertyInfo = new Dictionary<InspectorPropertyInfo, NodePortInfo>();
+		protected Dictionary<NodePort, NodePortInfo> nodePortToNodePortInfo = new Dictionary<NodePort, NodePortInfo>();
+		protected Dictionary<NodePort, InspectorPropertyInfo> nodePortToPropertyInfo = new Dictionary<NodePort, InspectorPropertyInfo>();
+
+		protected override InspectorPropertyInfo[] GetPropertyInfos()
+		{
+			var node = Property.Tree.WeakTargets.FirstOrDefault() as Node;
+
+			if ( this.processors == null )
+			{
+				this.processors = OdinPropertyProcessorLocator.GetMemberProcessors( this.Property );
+			}
+
+			var includeSpeciallySerializedMembers = !this.Property.ValueEntry.SerializationBackend.IsUnity;
+			var infos = InspectorPropertyInfoUtility.CreateMemberProperties( this.Property, typeof( T ), includeSpeciallySerializedMembers );
+
+			// Port makers
+			{
+				for ( int i = 0; i < infos.Count; ++i )
+				{
+					var info = infos[i];
+					var inputAttribute = info.GetMemberInfo().GetAttribute<InputAttribute>();
+					var outputAttribute = info.GetMemberInfo().GetAttribute<OutputAttribute>();
+					if ( inputAttribute != null || outputAttribute != null ) // Make a port.... we'll deal with dynamic later
+					{
+						string baseFieldName = info.PropertyName;
+						NodePort port = node.GetPort( info.PropertyName );
+						ShowBackingValue showBackingValue = ShowBackingValue.Always;
+						ConnectionType connectionType = ConnectionType.Multiple;
+						TypeConstraint typeConstraint = TypeConstraint.None;
+						bool isDynamicPortList = false;
+						bool isInput = false;
+
+						if ( inputAttribute != null )
+						{
+							showBackingValue = inputAttribute.backingValue;
+							connectionType = inputAttribute.connectionType;
+							typeConstraint = inputAttribute.typeConstraint;
+							isDynamicPortList = inputAttribute.dynamicPortList;
+							isInput = true;
+						}
+						else if ( outputAttribute != null )
+						{
+							showBackingValue = outputAttribute.backingValue;
+							connectionType = outputAttribute.connectionType;
+							typeConstraint = outputAttribute.typeConstraint;
+							isDynamicPortList = outputAttribute.dynamicPortList;
+							isInput = false;
+						}
+
+						var nodePortInfo = new NodePortInfo(
+							info,
+							baseFieldName,
+							Property.ValueEntry.WeakSmartValue as T, // Needed?
+							port,
+							showBackingValue,
+							connectionType,
+							typeConstraint,
+							isDynamicPortList,
+							isInput
+						);
+
+						propertyInfoToNodePropertyInfo[info] = nodePortInfo;
+						nodePortToNodePortInfo[port] = nodePortInfo;
+
+						var portInfo = InspectorPropertyInfo.CreateValue(
+							$"{info.PropertyName}:port",
+							0,
+							Property.ValueEntry.SerializationBackend,
+							new GetterSetter<T, NodePort>(
+								( ref T owner ) => port,
+								( ref T owner, NodePort value ) => { }
+							)
+							, new HideInInspector()
+						);
+
+
+						infos.Insert( i, portInfo );
+						++i; // Skip the next entry
+					}
+				}
+			}
+
+			for ( int i = 0; i < this.processors.Count; i++ )
+			{
+				ProcessedMemberPropertyResolverExtensions.ProcessingOwnerType = typeof( T );
+				this.processors[i].ProcessMemberProperties( infos );
+			}
+
+			return InspectorPropertyInfoUtility.BuildPropertyGroupsAndFinalize( this.Property, typeof( T ), infos, includeSpeciallySerializedMembers );
+		}
+
+		public NodePortInfo GetNodePortInfo( NodePort port )
+		{
+			NodePortInfo nodePortInfo;
+			nodePortToNodePortInfo.TryGetValue( port, out nodePortInfo );
+			return nodePortInfo;
+		}
+
+		public NodePortInfo GetNodePortInfo( InspectorPropertyInfo sourceProperty )
+		{
+			NodePortInfo nodePortInfo;
+			propertyInfoToNodePropertyInfo.TryGetValue( sourceProperty, out nodePortInfo );
+			return nodePortInfo;
+		}
+	}
 }

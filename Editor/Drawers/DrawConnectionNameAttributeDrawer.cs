@@ -9,38 +9,31 @@ using static XNode.Node;
 
 namespace XNodeEditor.Odin
 {
-	[AttributeUsage( AttributeTargets.Class, AllowMultiple = false, Inherited = false )]
-	public class ConnectionNameDrawerPriorityAttribute : DrawerPriorityAttribute
-	{
-		public ConnectionNameDrawerPriorityAttribute() : base( 1.2, 0, 0 )
-		{
-		}
-	}
+	//[AttributeUsage( AttributeTargets.Class, AllowMultiple = false, Inherited = false )]
+	//public class ConnectionNameDrawerPriorityAttribute : DrawerPriorityAttribute
+	//{
+	//	public ConnectionNameDrawerPriorityAttribute() : base( 0, 1, 0 )
+	//	{
+	//	}
+	//}
 
-	[ConnectionNameDrawerPriority]
-	public class DrawConnectionNameAttributeDrawer<T> : OdinAttributeDrawer<DrawConnectionNameAttribute, T>
+	//[ConnectionNameDrawerPriority]
+	public class DrawConnectionNameAttributeDrawer<T> : NodePortAttributeDrawer<DrawConnectionNameAttribute, T>
 	{
-		protected override bool CanDrawAttributeValueProperty( InspectorProperty property )
+		protected override bool CanDrawNodePort( NodePortInfo nodePortInfo, InspectorProperty property )
 		{
-			if ( !NodeEditor.InNodeEditor )
-				return false;
-
-			return property.Parent != null && property.Parent.ChildResolver is IDynamicDataNodePropertyPortResolver &&
-				property.ChildResolver is ISimpleNodePropertyPortResolver;
+			return nodePortInfo.ConnectionType == ConnectionType.Override;
 		}
 
-		protected override void DrawPropertyLayout( GUIContent label )
+		protected override void DrawPort( GUIContent label, NodePortInfo nodePortInfo, bool drawValue )
 		{
-			var portResolver = Property.ChildResolver as ISimpleNodePropertyPortResolver;
-			var port = portResolver.Port;
-
 			if ( Attribute.LabelWidth > 0 )
 				GUIHelper.PushLabelWidth( Attribute.LabelWidth );
 
-			if ( port.connectionType == ConnectionType.Override && port.IsConnected )
-				CallNextDrawer( new GUIContent( port.Connection.node.name ) );
+			if ( nodePortInfo.Port.IsConnected )
+				CallNextDrawer( new GUIContent( nodePortInfo.Port.Connection.node.name ) );
 			else
-				CallNextDrawer( null );
+				CallNextDrawer( label );
 
 			if ( Attribute.LabelWidth > 0 )
 				GUIHelper.PopLabelWidth();

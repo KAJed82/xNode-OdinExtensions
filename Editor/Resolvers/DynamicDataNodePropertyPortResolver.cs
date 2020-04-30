@@ -23,6 +23,7 @@ namespace XNodeEditor.Odin
         List<NodePort> DynamicPorts { get; }
 	}
 
+	[OdinDontRegister]
 	[ResolverPriority( 20 )]
 	// I want this to pass through sometimes
 	public class DynamicDataNodePropertyPortResolver<TList, TElement> : StrongListPropertyResolver<TList, TElement>, IDynamicDataNodePropertyPortResolver
