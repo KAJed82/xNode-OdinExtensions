@@ -61,8 +61,8 @@ namespace XNodeEditor.Odin
 
 	// Invert the pattern
 	// Inject this property into a node port holder
-	[ResolverPriority( 1000001 )]
-	public class NewNodePropertyPortResolver<T> : BaseMemberPropertyResolver<T>, IDisposable, INodePortResolver
+	[ResolverPriority( 10 )]
+	public class NodePropertyPortResolver<T> : BaseMemberPropertyResolver<T>, IDisposable, INodePortResolver
 		where T : Node
 	{
 		private List<OdinPropertyProcessor> processors;

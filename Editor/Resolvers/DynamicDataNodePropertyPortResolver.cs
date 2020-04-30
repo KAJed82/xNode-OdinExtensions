@@ -14,19 +14,18 @@ using static XNode.Node;
 
 namespace XNodeEditor.Odin
 {
-    public interface IDynamicDataNodePropertyPortResolver : INodePropertyPortResolver
-    {
-        string FieldName { get; }
+	public interface IDynamicDataNodePropertyPortResolver : INodePropertyPortResolver
+	{
+		string FieldName { get; }
 
-        void UpdateDynamicPorts();
+		void UpdateDynamicPorts();
 
-        List<NodePort> DynamicPorts { get; }
+		List<NodePort> DynamicPorts { get; }
 	}
 
-	[OdinDontRegister]
-	[ResolverPriority( 20 )]
-	// I want this to pass through sometimes
-	public class DynamicDataNodePropertyPortResolver<TList, TElement> : StrongListPropertyResolver<TList, TElement>, IDynamicDataNodePropertyPortResolver
+	[ResolverPriority( 20 )] // No data at 30
+							 // I want this to pass through sometimes
+	public class DynamicDataNodePropertyPortResolver<TList, TElement> : StrongListPropertyResolver<TList, TElement>//, IDynamicDataNodePropertyPortResolver
 		where TList : IList<TElement>
 	{
 		public override bool CanResolveForPropertyFilter( InspectorProperty property )
@@ -34,164 +33,106 @@ namespace XNodeEditor.Odin
 			if ( !NodeEditor.InNodeEditor )
 				return false;
 
-			// Base rule to find input / outputs
-			if ( property.ParentValueProperty == null && property.ParentType != null && property.ParentType.ImplementsOrInherits( typeof( Node ) ) ) // Base fields
+			var parent = property.ParentValueProperty;
+			if ( parent != null ) // Parent value property *should* only be valid for something living under the NoData dynamic list
 			{
-				var inputAttribute = property.GetAttribute<InputAttribute>();
-				if ( inputAttribute != null )
-					return inputAttribute.dynamicPortList && base.CanResolveForPropertyFilter( property );
-
-				var outputAttribute = property.GetAttribute<OutputAttribute>();
-				if ( outputAttribute != null )
-					return outputAttribute.dynamicPortList && base.CanResolveForPropertyFilter( property );
-
-				return false;
+				if ( parent.ChildResolver is IDynamicNoDataNodePropertyPortResolver )
+					return true;
 			}
 
-			// Also allow no data list to pass through
-			if ( property.ParentValueProperty != null && property.ParentValueProperty.ChildResolver is IDynamicNoDataNodePropertyPortResolver )
-				return true;
+			if ( parent == null )
+				parent = property.Tree.SecretRootProperty;
 
-			return false;
+			var resolver = parent.ChildResolver as INodePortResolver;
+			if ( resolver == null )
+				return false;
+
+			NodePortInfo portInfo = resolver.GetNodePortInfo( property.Info );
+			return portInfo != null; // I am a port!
 		}
+
+		protected INodePortResolver portResolver;
+		protected NodePortInfo nodePortInfo;
+
+		protected IDynamicNoDataNodePropertyPortResolver noDataResolver;
+
+		protected List<NodePort> dynamicPorts;
 
 		protected override void Initialize()
 		{
-			Node = Property.Tree.WeakTargets.FirstOrDefault() as Node;
-			// If this was provided by another no data set then let's do something different
-			if ( Property.ParentValueProperty != null && Property.ParentValueProperty.ChildResolver is IDynamicNoDataNodePropertyPortResolver )
-			{
-				ParentNoDataResolver = ( Property.ParentValueProperty.ChildResolver as IDynamicNoDataNodePropertyPortResolver );
-				FieldName = ParentNoDataResolver.FieldName;
+			// Port is already resolved for the base
+			var parent = Property.ParentValueProperty;
+			if ( parent == null )
+				parent = Property.Tree.SecretRootProperty;
 
-				ShowBackingValue = ParentNoDataResolver.ShowBackingValue;
-				ConnectionType = ParentNoDataResolver.ConnectionType;
-				TypeConstraint = ParentNoDataResolver.TypeConstraint;
-				IsDynamicPortList = true;
-				IsInput = ParentNoDataResolver.IsInput;
-			}
-			else
-			{
-				FieldName = Property.Name;
+			portResolver = parent.ChildResolver as INodePortResolver;
+			nodePortInfo = portResolver.GetNodePortInfo( Property.Info );
 
-				var inputAttribute = Property.GetAttribute<InputAttribute>();
-				var outputAttribute = Property.GetAttribute<OutputAttribute>();
-				if ( inputAttribute != null )
-				{
-					ShowBackingValue = inputAttribute.backingValue;
-					ConnectionType = inputAttribute.connectionType;
-					TypeConstraint = inputAttribute.typeConstraint;
-					IsDynamicPortList = inputAttribute.dynamicPortList;
-					IsInput = true;
-				}
-				else if ( outputAttribute != null )
-				{
-					ShowBackingValue = outputAttribute.backingValue;
-					ConnectionType = outputAttribute.connectionType;
-					TypeConstraint = outputAttribute.typeConstraint;
-					IsDynamicPortList = outputAttribute.dynamicPortList;
-					IsInput = false;
-				}
-			}
-
-			Port = Node.GetPort( FieldName );
+			noDataResolver = Property.ParentValueProperty == null ? null : parent.ChildResolver as IDynamicNoDataNodePropertyPortResolver;
 
 			UpdateDynamicPorts();
-
-			PortInfo = InspectorPropertyInfo.CreateValue(
-				NodePropertyPort.NodePortPropertyName,
-				0,
-				Property.ValueEntry.SerializationBackend,
-				new GetterSetter<TList, NodePort>(
-				( ref TList owner ) => Port,
-				( ref TList owner, NodePort value ) => { }
-				)
-				// propagate attributes that arent input / output and groups
-				, Property.Attributes
-				.Where( x => !( x is InputAttribute ) )
-				.Where( x => !( x is OutputAttribute ) )
-				.Where( x => !( x is PropertyGroupAttribute ) )
-			);
 
 			base.Initialize();
 		}
 
-		public Node Node { get; private set; }
-		public NodePort Port { get; private set; }
-
-		public ShowBackingValue ShowBackingValue { get; private set; }
-		public ConnectionType ConnectionType { get; private set; }
-		public TypeConstraint TypeConstraint { get; private set; }
-		public bool IsDynamicPortList { get; private set; }
-
-		public bool IsInput { get; private set; }
-
-		public string FieldName { get; private set; }
-
-		public InspectorPropertyInfo PortInfo { get; private set; }
-
-		public IDynamicNoDataNodePropertyPortResolver ParentNoDataResolver { get; private set; }
-
-		public List<NodePort> DynamicPorts { get; private set; }
-
 		public void UpdateDynamicPorts()
 		{
-			if ( DynamicPorts == null )
-				DynamicPorts = new List<NodePort>();
-			DynamicPorts.Clear();
+			if ( dynamicPorts == null )
+				dynamicPorts = new List<NodePort>();
+			dynamicPorts.Clear();
 
-			IEnumerable<NodePort> ports = Enumerable.Range( 0, int.MaxValue ).Select( x => Node.GetPort( $"{FieldName} {x}" ) );
+			IEnumerable<NodePort> ports = Enumerable.Range( 0, int.MaxValue ).Select( x => nodePortInfo.Node.GetPort( $"{nodePortInfo.BaseFieldName} {x}" ) );
 			foreach ( var port in ports )
 			{
 				if ( port == null ) // End on the first null port as well
 					break;
 
-				DynamicPorts.Add( port );
+				dynamicPorts.Add( port );
 			}
 
-			if ( ParentNoDataResolver != null )
-				ParentNoDataResolver.UpdateDynamicPorts();
+			if ( noDataResolver != null )
+				noDataResolver.UpdateDynamicPorts();
 		}
 
-		public override int ChildNameToIndex( string name )
-		{
-			switch ( name )
-			{
-				case NodePropertyPort.NodePortPropertyName:
-					return -1;
-			}
+		//public override int ChildNameToIndex( string name )
+		//{
+		//	switch ( name )
+		//	{
+		//		case NodePropertyPort.NodePortPropertyName:
+		//			return -1;
+		//	}
 
-			return base.ChildNameToIndex( name );
-		}
+		//	return base.ChildNameToIndex( name );
+		//}
 
-		public override InspectorPropertyInfo GetChildInfo( int childIndex )
-		{
-			if ( childIndex < 0 )
-				return PortInfo;
+		//public override InspectorPropertyInfo GetChildInfo( int childIndex )
+		//{
+		//	if ( childIndex < 0 )
+		//		return PortInfo;
 
-			return base.GetChildInfo( childIndex );
-		}
+		//	return base.GetChildInfo( childIndex );
+		//}
 
-		protected override int GetChildCount( TList value )
-		{
-			return base.GetChildCount( value );
-		}
+		//protected override int GetChildCount( TList value )
+		//{
+		//	return base.GetChildCount( value );
+		//}
 
 		#region Collection Handlers
 		protected override void Add( TList collection, object value )
 		{
 			int nextId = this.ChildCount;
 
-			if ( Port.IsInput )
-				Node.AddDynamicInput( typeof( TElement ), ConnectionType, TypeConstraint, string.Format( "{0} {1}", FieldName, nextId ) );
+			if ( nodePortInfo.Port.IsInput )
+				nodePortInfo.Node.AddDynamicInput( typeof( TElement ), nodePortInfo.ConnectionType, nodePortInfo.TypeConstraint, string.Format( "{0} {1}", nodePortInfo.BaseFieldName, nextId ) );
 			else
-				Node.AddDynamicOutput( typeof( TElement ), ConnectionType, TypeConstraint, string.Format( "{0} {1}", FieldName, nextId ) );
+				nodePortInfo.Node.AddDynamicOutput( typeof( TElement ), nodePortInfo.ConnectionType, nodePortInfo.TypeConstraint, string.Format( "{0} {1}", nodePortInfo.BaseFieldName, nextId ) );
 
 			UpdateDynamicPorts();
 
 			lastRemovedConnections.Clear();
 
-			if ( ParentNoDataResolver == null )
+			if ( noDataResolver == null )
 				base.Add( collection, value );
 		}
 
@@ -201,31 +142,31 @@ namespace XNodeEditor.Odin
 
 			// Remove happens before insert and we lose all the connections
 			// Add a new port at the end
-			if ( Port.IsInput )
-				Node.AddDynamicInput( typeof( TElement ), ConnectionType, TypeConstraint, string.Format( "{0} {1}", FieldName, nextId ) );
+			if ( nodePortInfo.Port.IsInput )
+				nodePortInfo.Node.AddDynamicInput( typeof( TElement ), nodePortInfo.ConnectionType, nodePortInfo.TypeConstraint, string.Format( "{0} {1}", nodePortInfo.BaseFieldName, nextId ) );
 			else
-				Node.AddDynamicOutput( typeof( TElement ), ConnectionType, TypeConstraint, string.Format( "{0} {1}", FieldName, nextId ) );
+				nodePortInfo.Node.AddDynamicOutput( typeof( TElement ), nodePortInfo.ConnectionType, nodePortInfo.TypeConstraint, string.Format( "{0} {1}", nodePortInfo.BaseFieldName, nextId ) );
 
 			UpdateDynamicPorts();
 
 			// Move everything down to make space
-			for ( int k = DynamicPorts.Count - 1; k > index; --k )
+			for ( int k = dynamicPorts.Count - 1; k > index; --k )
 			{
-				for ( int j = 0; j < DynamicPorts[k - 1].ConnectionCount; j++ )
+				for ( int j = 0; j < dynamicPorts[k - 1].ConnectionCount; j++ )
 				{
-					NodePort other = DynamicPorts[k - 1].GetConnection( j );
-					DynamicPorts[k - 1].Disconnect( other );
-					DynamicPorts[k].Connect( other );
+					NodePort other = dynamicPorts[k - 1].GetConnection( j );
+					dynamicPorts[k - 1].Disconnect( other );
+					dynamicPorts[k].Connect( other );
 				}
 			}
 
 			// Let's just re-add connections to this node that were probably his
 			foreach ( var c in lastRemovedConnections )
-				DynamicPorts[index].Connect( c );
+				dynamicPorts[index].Connect( c );
 
 			lastRemovedConnections.Clear();
 
-			if ( ParentNoDataResolver == null )
+			if ( noDataResolver == null )
 				base.InsertAt( collection, index, value );
 		}
 
@@ -240,50 +181,50 @@ namespace XNodeEditor.Odin
 
 		protected override void RemoveAt( TList collection, int index )
 		{
-			if ( DynamicPorts[index] == null )
+			if ( dynamicPorts[index] == null )
 			{
 				Debug.LogWarning( "No port found at index " + index + " - Skipped" );
 			}
-			else if ( DynamicPorts.Count <= index )
+			else if ( dynamicPorts.Count <= index )
 			{
-				Debug.LogWarning( "DynamicPorts[" + index + "] out of range. Length was " + DynamicPorts.Count + " - Skipped" );
+				Debug.LogWarning( "DynamicPorts[" + index + "] out of range. Length was " + dynamicPorts.Count + " - Skipped" );
 			}
 			else
 			{
 				lastRemovedConnections.Clear();
-				lastRemovedConnections.AddRange( DynamicPorts[index].GetConnections() );
+				lastRemovedConnections.AddRange( dynamicPorts[index].GetConnections() );
 
 				// Clear the removed ports connections
-				DynamicPorts[index].ClearConnections();
+				dynamicPorts[index].ClearConnections();
 				// Move following connections one step up to replace the missing connection
-				for ( int k = index + 1; k < DynamicPorts.Count; k++ )
+				for ( int k = index + 1; k < dynamicPorts.Count; k++ )
 				{
-					for ( int j = 0; j < DynamicPorts[k].ConnectionCount; j++ )
+					for ( int j = 0; j < dynamicPorts[k].ConnectionCount; j++ )
 					{
-						NodePort other = DynamicPorts[k].GetConnection( j );
-						DynamicPorts[k].Disconnect( other );
-						DynamicPorts[k - 1].Connect( other );
+						NodePort other = dynamicPorts[k].GetConnection( j );
+						dynamicPorts[k].Disconnect( other );
+						dynamicPorts[k - 1].Connect( other );
 					}
 				}
 
 				// Remove the last dynamic port, to avoid messing up the indexing
-				Node.RemoveDynamicPort( DynamicPorts[DynamicPorts.Count() - 1].fieldName );
+				nodePortInfo.Node.RemoveDynamicPort( dynamicPorts[dynamicPorts.Count() - 1].fieldName );
 				UpdateDynamicPorts();
 			}
 
-			if ( ParentNoDataResolver == null )
+			if ( noDataResolver == null )
 				base.RemoveAt( collection, index );
 		}
 
 		protected override void Clear( TList collection )
 		{
-			foreach ( var port in DynamicPorts )
-				Node.RemoveDynamicPort( port );
+			foreach ( var port in dynamicPorts )
+				nodePortInfo.Node.RemoveDynamicPort( port );
 
 			lastRemovedConnections.Clear();
 			UpdateDynamicPorts();
 
-			if ( ParentNoDataResolver == null )
+			if ( noDataResolver == null )
 				base.Clear( collection );
 		}
 		#endregion
