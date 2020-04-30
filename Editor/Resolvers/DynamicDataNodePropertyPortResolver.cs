@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
-
+using Sirenix.Utilities.Editor;
 using UnityEngine;
 
 using XNode;
@@ -14,18 +15,18 @@ using static XNode.Node;
 
 namespace XNodeEditor.Odin
 {
-	public interface IDynamicDataNodePropertyPortResolver : INodePropertyPortResolver
+	public interface IDynamicDataNodePropertyPortResolver : INodePortResolver
 	{
-		string FieldName { get; }
+		//string FieldName { get; }
 
-		void UpdateDynamicPorts();
+		//void UpdateDynamicPorts();
 
-		List<NodePort> DynamicPorts { get; }
+		//List<NodePort> DynamicPorts { get; }
 	}
 
 	[ResolverPriority( 20 )] // No data at 30
 							 // I want this to pass through sometimes
-	public class DynamicDataNodePropertyPortResolver<TList, TElement> : StrongListPropertyResolver<TList, TElement>//, IDynamicDataNodePropertyPortResolver
+	public class DynamicDataNodePropertyPortResolver<TList, TElement> : StrongListPropertyResolver<TList, TElement>, IDynamicDataNodePropertyPortResolver
 		where TList : IList<TElement>
 	{
 		public override bool CanResolveForPropertyFilter( InspectorProperty property )
@@ -51,12 +52,18 @@ namespace XNodeEditor.Odin
 			return portInfo != null; // I am a port!
 		}
 
+		protected override bool AllowNullValues => true;
+
 		protected INodePortResolver portResolver;
 		protected NodePortInfo nodePortInfo;
 
 		protected IDynamicNoDataNodePropertyPortResolver noDataResolver;
 
 		protected List<NodePort> dynamicPorts;
+		protected Dictionary<int, InspectorPropertyInfo> childPortInfos = new Dictionary<int, InspectorPropertyInfo>();
+
+		protected Dictionary<InspectorPropertyInfo, NodePortInfo> propertyInfoToNodePropertyInfo = new Dictionary<InspectorPropertyInfo, NodePortInfo>();
+		protected Dictionary<NodePort, NodePortInfo> nodePortToNodePortInfo = new Dictionary<NodePort, NodePortInfo>();
 
 		protected override void Initialize()
 		{
@@ -70,9 +77,9 @@ namespace XNodeEditor.Odin
 
 			noDataResolver = Property.ParentValueProperty == null ? null : parent.ChildResolver as IDynamicNoDataNodePropertyPortResolver;
 
-			UpdateDynamicPorts();
-
 			base.Initialize();
+
+			UpdateDynamicPorts();
 		}
 
 		public void UpdateDynamicPorts()
@@ -94,29 +101,88 @@ namespace XNodeEditor.Odin
 				noDataResolver.UpdateDynamicPorts();
 		}
 
-		//public override int ChildNameToIndex( string name )
-		//{
-		//	switch ( name )
-		//	{
-		//		case NodePropertyPort.NodePortPropertyName:
-		//			return -1;
-		//	}
+		public override int ChildNameToIndex( string name )
+		{
+			if ( name.EndsWith( ":port" ) )
+			{
+				Debug.Log( "PORT" );
+				return CollectionResolverUtilities.DefaultChildNameToIndex( name ) + dynamicPorts.Count;
+			}
 
-		//	return base.ChildNameToIndex( name );
-		//}
+			return base.ChildNameToIndex( name );
+		}
 
-		//public override InspectorPropertyInfo GetChildInfo( int childIndex )
-		//{
-		//	if ( childIndex < 0 )
-		//		return PortInfo;
+		protected InspectorPropertyInfo GetInfoForPortAtIndex( int index )
+		{
+			InspectorPropertyInfo childPortInfo;
+			if ( !childPortInfos.TryGetValue( index, out childPortInfo ) )
+			{
+				InspectorPropertyInfo sourceChildInfo = base.GetChildInfo( index );
 
-		//	return base.GetChildInfo( childIndex );
-		//}
+				string portName = $"{nodePortInfo.BaseFieldName} {index}";
+				Node node = nodePortInfo.Node;
+				NodePort port = node.GetPort( portName );
 
-		//protected override int GetChildCount( TList value )
-		//{
-		//	return base.GetChildCount( value );
-		//}
+				var childNodePortInfo = new NodePortInfo(
+					sourceChildInfo,
+					portName,
+					node, // Needed?
+					port,
+					nodePortInfo.ShowBackingValue,
+					nodePortInfo.ConnectionType,
+					nodePortInfo.TypeConstraint,
+					nodePortInfo.IsDynamicPortList,
+					nodePortInfo.IsInput
+				);
+
+				childPortInfo = InspectorPropertyInfo.CreateValue(
+					$"{CollectionResolverUtilities.DefaultIndexToChildName( index )}:port",
+					0,
+					Property.ValueEntry.SerializationBackend,
+					new GetterSetter<TList, NodePort>(
+						( ref TList owner ) => childNodePortInfo.Port,
+						( ref TList owner, NodePort value ) => { }
+					)
+					, new HideInInspector()
+				);
+
+				propertyInfoToNodePropertyInfo[sourceChildInfo] = childNodePortInfo;
+				nodePortToNodePortInfo[port] = childNodePortInfo;
+
+				childPortInfos[index] = childPortInfo;
+			}
+			return childPortInfo;
+		}
+
+		public override InspectorPropertyInfo GetChildInfo( int childIndex )
+		{
+			if ( childIndex >= dynamicPorts.Count )
+				return GetInfoForPortAtIndex( childIndex - dynamicPorts.Count );
+
+			return base.GetChildInfo( childIndex );
+		}
+
+		protected override int GetChildCount( TList value )
+		{
+			return base.GetChildCount( value );
+		}
+
+		public NodePortInfo GetNodePortInfo( NodePort port )
+		{
+			throw new NotImplementedException();
+		}
+
+		public NodePortInfo GetNodePortInfo( InspectorPropertyInfo sourceProperty )
+		{
+			var index = CollectionResolverUtilities.DefaultChildNameToIndex( sourceProperty.PropertyName );
+			var portInfo = GetInfoForPortAtIndex( index );
+			if ( portInfo == null )
+				return null;
+
+			NodePortInfo nodePortInfo;
+			propertyInfoToNodePropertyInfo.TryGetValue( sourceProperty, out nodePortInfo );
+			return nodePortInfo;
+		}
 
 		#region Collection Handlers
 		protected override void Add( TList collection, object value )
@@ -229,4 +295,36 @@ namespace XNodeEditor.Odin
 		}
 		#endregion
 	}
+
+	//[DrawerPriority(1,0,0)]
+	//public class DynamicPortDrawer<T> : OdinValueDrawer<T>
+	//{
+	//	protected override bool CanDrawValueProperty( InspectorProperty property )
+	//	{
+	//		return property.Parent != null && property.Parent.ChildResolver is IDynamicDataNodePropertyPortResolver;
+	//	}
+
+	//	protected override void DrawPropertyLayout( GUIContent label )
+	//	{
+	//		SirenixEditorGUI.MessageBox( Property.Name );
+	//		if ( Property.Parent != null )
+	//			SirenixEditorGUI.MessageBox( Property.Parent.ChildResolver.ToString() );
+
+	//		var resolver = Property.Parent.ChildResolver as IDynamicDataNodePropertyPortResolver;
+	//		var nodePortInfo = resolver.GetNodePortInfo( Property.Info );
+	//		if ( nodePortInfo != null )
+	//			SirenixEditorGUI.MessageBox( $"Port: {nodePortInfo.BaseFieldName} {nodePortInfo.Port.ValueType.Name}" );
+
+	//		CallNextDrawer( label );
+	//	}
+	//}
+
+	//[ResolverPriority( 10 )]
+	//public class DynamicPortPropertyResolver<T> : NodePropertyPortResolver<T>
+	//{
+	//	public override bool CanResolveForPropertyFilter( InspectorProperty property )
+	//	{
+	//		return property.Parent != null && property.Parent.ChildResolver is IDynamicDataNodePropertyPortResolver;
+	//	}
+	//}
 }

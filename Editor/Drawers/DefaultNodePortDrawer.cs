@@ -11,7 +11,14 @@ namespace XNodeEditor.Odin
 	{
 		protected override bool CanDrawNodePort( NodePortInfo nodePortInfo, InspectorProperty property )
 		{
-			return !nodePortInfo.IsDynamicPortList;
+			// Don't draw ports for lists that are also ports
+			if ( property.ChildResolver is ICollectionResolver )
+			{
+				if ( property.ChildResolver is IDynamicDataNodePropertyPortResolver )
+					return false;
+			}
+
+			return true;
 		}
 
 		protected override void DrawPort( GUIContent label, NodePortInfo nodePortInfo, bool drawValue )

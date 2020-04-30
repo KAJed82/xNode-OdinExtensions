@@ -17,6 +17,7 @@ namespace XNodeEditor.Odin
 		void UpdateDynamicPorts();
 	}
 
+	[OdinDontRegister]
 	[ResolverPriority( 30 )]
 	public class DynamicNoDataNodePropertyPortResolver<TValue> : OdinPropertyResolver<TValue>, IDynamicNoDataNodePropertyPortResolver
 	{
@@ -37,11 +38,15 @@ namespace XNodeEditor.Odin
 			return portInfo != null && portInfo.IsDynamicPortList && !typeof( TValue ).ImplementsOrInherits( typeof( System.Collections.IList ) );
 		}
 
+		protected override bool AllowNullValues => true;
+
 		protected INodePortResolver portResolver;
 		protected NodePortInfo nodePortInfo;
 
 		protected InspectorPropertyInfo fakeListInfo;
 		protected List<int> dynamicPorts;
+
+		protected List<int> GetDynamicPorts( ref TValue owner ) => dynamicPorts;
 
 		protected override void Initialize()
 		{
@@ -60,7 +65,7 @@ namespace XNodeEditor.Odin
 				0,
 				Property.ValueEntry.SerializationBackend,
 				new GetterSetter<TValue, List<int>>(
-				( ref TValue owner ) => dynamicPorts,
+				GetDynamicPorts,
 				( ref TValue owner, List<int> value ) => { }
 				)
 				, new ShowPropertyResolverAttribute()

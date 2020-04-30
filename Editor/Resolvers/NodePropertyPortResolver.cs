@@ -62,8 +62,7 @@ namespace XNodeEditor.Odin
 	// Invert the pattern
 	// Inject this property into a node port holder
 	[ResolverPriority( 10 )]
-	public class NodePropertyPortResolver<T> : BaseMemberPropertyResolver<T>, IDisposable, INodePortResolver
-		where T : Node
+	public abstract class NodePropertyPortResolver<T> : BaseMemberPropertyResolver<T>, IDisposable, INodePortResolver
 	{
 		private List<OdinPropertyProcessor> processors;
 
@@ -85,7 +84,6 @@ namespace XNodeEditor.Odin
 
 		protected Dictionary<InspectorPropertyInfo, NodePortInfo> propertyInfoToNodePropertyInfo = new Dictionary<InspectorPropertyInfo, NodePortInfo>();
 		protected Dictionary<NodePort, NodePortInfo> nodePortToNodePortInfo = new Dictionary<NodePort, NodePortInfo>();
-		protected Dictionary<NodePort, InspectorPropertyInfo> nodePortToPropertyInfo = new Dictionary<NodePort, InspectorPropertyInfo>();
 
 		protected override InspectorPropertyInfo[] GetPropertyInfos()
 		{
@@ -136,7 +134,7 @@ namespace XNodeEditor.Odin
 						var nodePortInfo = new NodePortInfo(
 							info,
 							baseFieldName,
-							Property.ValueEntry.WeakSmartValue as T, // Needed?
+							Property.Tree.WeakTargets.FirstOrDefault() as Node, // Needed?
 							port,
 							showBackingValue,
 							connectionType,
@@ -153,7 +151,7 @@ namespace XNodeEditor.Odin
 							0,
 							Property.ValueEntry.SerializationBackend,
 							new GetterSetter<T, NodePort>(
-								( ref T owner ) => port,
+								( ref T owner ) => nodePortInfo.Port,
 								( ref T owner, NodePort value ) => { }
 							)
 							, new HideInInspector()
@@ -188,5 +186,10 @@ namespace XNodeEditor.Odin
 			propertyInfoToNodePropertyInfo.TryGetValue( sourceProperty, out nodePortInfo );
 			return nodePortInfo;
 		}
+	}
+
+	public class DefaultNodePropertyPortResolver<T> : NodePropertyPortResolver<T>
+		where T : Node
+	{
 	}
 }
