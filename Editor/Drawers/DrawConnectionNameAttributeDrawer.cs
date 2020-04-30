@@ -9,15 +9,6 @@ using static XNode.Node;
 
 namespace XNodeEditor.Odin
 {
-	//[AttributeUsage( AttributeTargets.Class, AllowMultiple = false, Inherited = false )]
-	//public class ConnectionNameDrawerPriorityAttribute : DrawerPriorityAttribute
-	//{
-	//	public ConnectionNameDrawerPriorityAttribute() : base( 0, 1, 0 )
-	//	{
-	//	}
-	//}
-
-	//[ConnectionNameDrawerPriority]
 	public class DrawConnectionNameAttributeDrawer<T> : NodePortAttributeDrawer<DrawConnectionNameAttribute, T>
 	{
 		protected override bool CanDrawNodePort( NodePortInfo nodePortInfo, InspectorProperty property )

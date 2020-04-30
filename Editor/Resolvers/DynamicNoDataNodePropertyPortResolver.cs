@@ -70,7 +70,11 @@ namespace XNodeEditor.Odin
 				new GetterSetter<TValue, List<int>>(
 				GetDynamicPorts,
 				( ref TValue owner, List<int> value ) => { }
-				)
+				),
+				Property.Attributes
+				.Where( x => !(x is PropertyGroupAttribute) )
+				.Where( x => !(x is InputAttribute) )
+				.Where( x => !(x is OutputAttribute) )
 				//, new ShowPropertyResolverAttribute()
 			);
 		}
