@@ -1,14 +1,7 @@
 ﻿
-using System.Linq;
-
 using Sirenix.OdinInspector.Editor;
-using Sirenix.Utilities;
 
 using UnityEngine;
-
-using XNode;
-
-using static XNode.Node;
 
 namespace XNodeEditor.Odin
 {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
 
@@ -162,6 +163,18 @@ namespace XNodeEditor.Odin
 							, new HideInInspector()
 						);
 
+						if ( isDynamicPortList )
+						{
+							var listDrawerAttributes = info.GetAttribute<ListDrawerSettingsAttribute>();
+							if ( listDrawerAttributes == null )
+							{
+								listDrawerAttributes = new ListDrawerSettingsAttribute();
+								info.GetEditableAttributesList().Add( listDrawerAttributes );
+							}
+
+							listDrawerAttributes.Expanded = true;
+							listDrawerAttributes.ShowPaging = false;
+						}
 
 						infos.Insert( i, portInfo );
 						++i; // Skip the next entry

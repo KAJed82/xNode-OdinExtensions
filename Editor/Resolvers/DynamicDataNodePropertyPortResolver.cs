@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
-using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
-using Sirenix.Utilities;
-using Sirenix.Utilities.Editor;
+
 using UnityEngine;
 
 using XNode;
-
-using static XNode.Node;
 
 namespace XNodeEditor.Odin
 {
@@ -291,36 +285,4 @@ namespace XNodeEditor.Odin
 		}
 		#endregion
 	}
-
-	//[DrawerPriority(1,0,0)]
-	//public class DynamicPortDrawer<T> : OdinValueDrawer<T>
-	//{
-	//	protected override bool CanDrawValueProperty( InspectorProperty property )
-	//	{
-	//		return property.Parent != null && property.Parent.ChildResolver is IDynamicDataNodePropertyPortResolver;
-	//	}
-
-	//	protected override void DrawPropertyLayout( GUIContent label )
-	//	{
-	//		SirenixEditorGUI.MessageBox( Property.Name );
-	//		if ( Property.Parent != null )
-	//			SirenixEditorGUI.MessageBox( Property.Parent.ChildResolver.ToString() );
-
-	//		var resolver = Property.Parent.ChildResolver as IDynamicDataNodePropertyPortResolver;
-	//		var nodePortInfo = resolver.GetNodePortInfo( Property.Info );
-	//		if ( nodePortInfo != null )
-	//			SirenixEditorGUI.MessageBox( $"Port: {nodePortInfo.BaseFieldName} {nodePortInfo.Port.ValueType.Name}" );
-
-	//		CallNextDrawer( label );
-	//	}
-	//}
-
-	//[ResolverPriority( 10 )]
-	//public class DynamicPortPropertyResolver<T> : NodePropertyPortResolver<T>
-	//{
-	//	public override bool CanResolveForPropertyFilter( InspectorProperty property )
-	//	{
-	//		return property.Parent != null && property.Parent.ChildResolver is IDynamicDataNodePropertyPortResolver;
-	//	}
-	//}
 }
