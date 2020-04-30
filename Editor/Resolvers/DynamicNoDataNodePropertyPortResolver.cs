@@ -17,7 +17,6 @@ namespace XNodeEditor.Odin
 		void UpdateDynamicPorts();
 	}
 
-	[OdinDontRegister]
 	[ResolverPriority( 30 )]
 	public class DynamicNoDataNodePropertyPortResolver<TValue> : OdinPropertyResolver<TValue>, IDynamicNoDataNodePropertyPortResolver
 	{
@@ -27,15 +26,19 @@ namespace XNodeEditor.Odin
 				return false;
 
 			var parent = property.ParentValueProperty;
-			if ( parent == null )
+			if ( parent == null ) // Root only
+			{
 				parent = property.Tree.SecretRootProperty;
 
-			var resolver = parent.ChildResolver as INodePortResolver;
-			if ( resolver == null )
-				return false;
+				var resolver = parent.ChildResolver as INodePortResolver;
+				if ( resolver == null )
+					return false;
 
-			NodePortInfo portInfo = resolver.GetNodePortInfo( property.Info );
-			return portInfo != null && portInfo.IsDynamicPortList && !typeof( TValue ).ImplementsOrInherits( typeof( System.Collections.IList ) );
+				NodePortInfo portInfo = resolver.GetNodePortInfo( property.Info );
+				return portInfo != null && portInfo.IsDynamicPortList && !typeof( TValue ).ImplementsOrInherits( typeof( System.Collections.IList ) );
+			}
+
+			return false;
 		}
 
 		protected override bool AllowNullValues => true;
@@ -68,7 +71,7 @@ namespace XNodeEditor.Odin
 				GetDynamicPorts,
 				( ref TValue owner, List<int> value ) => { }
 				)
-				, new ShowPropertyResolverAttribute()
+				//, new ShowPropertyResolverAttribute()
 			);
 		}
 
