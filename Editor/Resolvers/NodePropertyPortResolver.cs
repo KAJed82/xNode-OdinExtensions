@@ -26,7 +26,7 @@ namespace XNodeEditor.Odin
 		public string BaseFieldName { get; private set; }
 
 		public Node Node { get; private set; }
-		public NodePort Port { get; private set; }
+		public NodePort Port => Node.GetPort( BaseFieldName );
 
 		public ShowBackingValue ShowBackingValue { get; private set; }
 		public ConnectionType ConnectionType { get; private set; }
@@ -39,7 +39,6 @@ namespace XNodeEditor.Odin
 			InspectorPropertyInfo sourcePropertyInfo,
 			string baseFieldName,
 			Node node, // Needed?
-			NodePort port,
 			ShowBackingValue showBackingValue,
 			ConnectionType connectionType,
 			TypeConstraint typeConstraint,
@@ -50,7 +49,6 @@ namespace XNodeEditor.Odin
 			SourcePropertyInfo = sourcePropertyInfo;
 			BaseFieldName = baseFieldName;
 			Node = node;
-			Port = port;
 			ShowBackingValue = showBackingValue;
 			ConnectionType = connectionType;
 			TypeConstraint = typeConstraint;
@@ -135,7 +133,6 @@ namespace XNodeEditor.Odin
 							info,
 							baseFieldName,
 							Property.Tree.WeakTargets.FirstOrDefault() as Node, // Needed?
-							port,
 							showBackingValue,
 							connectionType,
 							typeConstraint,

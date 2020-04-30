@@ -127,7 +127,6 @@ namespace XNodeEditor.Odin
 					sourceChildInfo,
 					portName,
 					node, // Needed?
-					port,
 					nodePortInfo.ShowBackingValue,
 					nodePortInfo.ConnectionType,
 					nodePortInfo.TypeConstraint,
