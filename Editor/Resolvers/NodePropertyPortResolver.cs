@@ -15,6 +15,8 @@ namespace XNodeEditor.Odin
 {
 	public interface INodePortResolver
 	{
+		Node Node { get; }
+
 		NodePortInfo GetNodePortInfo( NodePort port );
 		NodePortInfo GetNodePortInfo( InspectorPropertyInfo sourceProperty );
 	}
@@ -76,13 +78,20 @@ namespace XNodeEditor.Odin
 			}
 		}
 
+		public Node Node { get; private set; }
+
 		protected Dictionary<InspectorPropertyInfo, NodePortInfo> propertyInfoToNodePropertyInfo = new Dictionary<InspectorPropertyInfo, NodePortInfo>();
 		protected Dictionary<NodePort, NodePortInfo> nodePortToNodePortInfo = new Dictionary<NodePort, NodePortInfo>();
 
+		protected override void Initialize()
+		{
+			base.Initialize();
+
+			Node = Property.Tree.WeakTargets.FirstOrDefault() as Node;
+		}
+
 		protected override InspectorPropertyInfo[] GetPropertyInfos()
 		{
-			var node = Property.Tree.WeakTargets.FirstOrDefault() as Node;
-
 			if ( this.processors == null )
 			{
 				this.processors = OdinPropertyProcessorLocator.GetMemberProcessors( this.Property );
@@ -101,7 +110,7 @@ namespace XNodeEditor.Odin
 					if ( inputAttribute != null || outputAttribute != null ) // Make a port.... we'll deal with dynamic later
 					{
 						string baseFieldName = info.PropertyName;
-						NodePort port = node.GetPort( info.PropertyName );
+						NodePort port = Node.GetPort( info.PropertyName );
 						ShowBackingValue showBackingValue = ShowBackingValue.Always;
 						ConnectionType connectionType = ConnectionType.Multiple;
 						TypeConstraint typeConstraint = TypeConstraint.None;
@@ -123,6 +132,12 @@ namespace XNodeEditor.Odin
 							typeConstraint = outputAttribute.typeConstraint;
 							isDynamicPortList = outputAttribute.dynamicPortList;
 							isInput = false;
+						}
+
+						// The port didn't exist... let's just make it exist again?
+						if ( port == null )
+						{
+							Debug.LogError( "WTF" );
 						}
 
 						var nodePortInfo = new NodePortInfo(

@@ -21,7 +21,8 @@ namespace XNodeEditor.Odin
 			if ( Attribute.LabelWidth > 0 )
 				GUIHelper.PushLabelWidth( Attribute.LabelWidth );
 
-			if ( nodePortInfo.Port.IsConnected )
+			// Extra sanity checks
+			if ( nodePortInfo.Port.IsConnected && nodePortInfo.Port.Connection != null && nodePortInfo.Port.Connection.node != null )
 				CallNextDrawer( new GUIContent( nodePortInfo.Port.Connection.node.name ) );
 			else
 				CallNextDrawer( label );

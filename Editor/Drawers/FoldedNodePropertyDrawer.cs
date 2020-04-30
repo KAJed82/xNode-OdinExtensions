@@ -17,26 +17,29 @@ namespace XNodeEditor.Odin
 	{
 		protected override bool CanDrawValueProperty( InspectorProperty property )
 		{
-			if ( !( property.Tree.WeakTargets.FirstOrDefault() is Node ) )
+			if ( !NodeEditor.InNodeEditor )
 				return false;
 
-			if ( property.ValueEntry.TypeOfValue.ImplementsOrInherits( typeof( NodePort ) ) )
-				return false;
+			var parent = property.ParentValueProperty;
+			if ( parent == null )
+				parent = property.Tree.SecretRootProperty;
 
-			if ( property.GetAttribute<InputAttribute>() != null || property.GetAttribute<OutputAttribute>() != null || property.GetAttribute<DontFoldAttribute>() != null )
-				return false;
-
-			// Don't try to fold that were resolved by my magic
-			if ( property.Parent != null )
+			if ( parent.ChildResolver is INodePortResolver )
 			{
-				if ( property.Parent.ChildResolver is IDynamicDataNodePropertyPortResolver )
-					return false;
-				if ( property.Parent.ChildResolver is IDynamicNoDataNodePropertyPortResolver )
+				var resolver = parent.ChildResolver as INodePortResolver;
+				NodePortInfo portInfo = resolver.GetNodePortInfo( property.Info );
+				if ( portInfo != null )
 					return false;
 			}
+			else
+			{
+				return false;
+			}
 
-			return true;
+			return property.GetAttribute<DontFoldAttribute>() == null;
 		}
+
+		protected bool isVisible = false;
 
 		protected override void DrawPropertyLayout( GUIContent label )
 		{
@@ -47,17 +50,18 @@ namespace XNodeEditor.Odin
 				return;
 			}
 
-			Node node = Property.Tree.WeakTargets.OfType<Node>().FirstOrDefault();
+			var parent = Property.ParentValueProperty;
+			if ( parent == null )
+				parent = Property.Tree.SecretRootProperty;
 
-			// If this property has "DontFoldAttribute" then don't!
-			if ( node == null )
-			{
-				CallNextDrawer( label );
+			var resolver = parent.ChildResolver as INodePortResolver;
+			if ( Event.current.type == EventType.Layout )
+				isVisible = !resolver.Node.folded;
+
+			if ( !isVisible )
 				return;
-			}
 
-			if ( !node.folded )
-				CallNextDrawer( label );
+			CallNextDrawer( label );
 		}
 	}
 }

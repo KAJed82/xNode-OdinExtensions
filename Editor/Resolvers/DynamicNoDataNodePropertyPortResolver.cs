@@ -43,13 +43,18 @@ namespace XNodeEditor.Odin
 
 		protected override bool AllowNullValues => true;
 
+		public Node Node => nodePortInfo.Node;
+
 		protected INodePortResolver portResolver;
 		protected NodePortInfo nodePortInfo;
 
 		protected InspectorPropertyInfo fakeListInfo;
 		protected List<int> dynamicPorts;
 
-		protected List<int> GetDynamicPorts( ref TValue owner ) => dynamicPorts;
+		protected List<int> GetDynamicPorts( ref TValue owner )
+		{
+			return dynamicPorts;
+		}
 
 		protected override void Initialize()
 		{
@@ -72,10 +77,9 @@ namespace XNodeEditor.Odin
 				( ref TValue owner, List<int> value ) => { }
 				),
 				Property.Attributes
-				.Where( x => !(x is PropertyGroupAttribute) )
-				.Where( x => !(x is InputAttribute) )
-				.Where( x => !(x is OutputAttribute) )
-				//, new ShowPropertyResolverAttribute()
+				.Where( x => !( x is PropertyGroupAttribute ) )
+				.Where( x => !( x is InputAttribute ) )
+				.Where( x => !( x is OutputAttribute ) )
 			);
 		}
 

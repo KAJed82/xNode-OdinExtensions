@@ -17,11 +17,6 @@ namespace XNodeEditor.Odin
 {
 	public interface IDynamicDataNodePropertyPortResolver : INodePortResolver
 	{
-		//string FieldName { get; }
-
-		//void UpdateDynamicPorts();
-
-		//List<NodePort> DynamicPorts { get; }
 	}
 
 	[ResolverPriority( 20 )] // No data at 30
@@ -53,6 +48,8 @@ namespace XNodeEditor.Odin
 		}
 
 		protected override bool AllowNullValues => true;
+
+		public Node Node => nodePortInfo.Node;
 
 		protected INodePortResolver portResolver;
 		protected NodePortInfo nodePortInfo;
@@ -104,10 +101,7 @@ namespace XNodeEditor.Odin
 		public override int ChildNameToIndex( string name )
 		{
 			if ( name.EndsWith( ":port" ) )
-			{
-				Debug.Log( "PORT" );
 				return CollectionResolverUtilities.DefaultChildNameToIndex( name ) + dynamicPorts.Count;
-			}
 
 			return base.ChildNameToIndex( name );
 		}
@@ -122,6 +116,15 @@ namespace XNodeEditor.Odin
 				string portName = $"{nodePortInfo.BaseFieldName} {index}";
 				Node node = nodePortInfo.Node;
 				NodePort port = node.GetPort( portName );
+
+				// The port didn't exist... let's just make it exist again?
+				if ( port == null )
+				{
+					if ( nodePortInfo.IsInput )
+						port = node.AddDynamicInput( typeof( TElement ), nodePortInfo.ConnectionType, nodePortInfo.TypeConstraint, portName );
+					else
+						port = node.AddDynamicOutput( typeof( TElement ), nodePortInfo.ConnectionType, nodePortInfo.TypeConstraint, portName );
+				}
 
 				var childNodePortInfo = new NodePortInfo(
 					sourceChildInfo,

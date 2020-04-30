@@ -25,7 +25,7 @@ namespace XNodeEditor.Odin
 				var resolver = parent.ChildResolver as INodePortResolver;
 				NodePortInfo portInfo = resolver.GetNodePortInfo( property.Info );
 				if ( portInfo != null )
-					return CanDrawNodePort( portInfo, property );
+					return ( portInfo.Port.IsDynamic || !portInfo.IsDynamicPortList ) && CanDrawNodePort( portInfo, property );
 
 				return false;
 			}
@@ -111,7 +111,7 @@ namespace XNodeEditor.Odin
 				var resolver = parent.ChildResolver as INodePortResolver;
 				NodePortInfo portInfo = resolver.GetNodePortInfo( property.Info );
 				if ( portInfo != null )
-					return CanDrawNodePort( portInfo, property );
+					return ( portInfo.Port.IsDynamic || !portInfo.IsDynamicPortList ) && CanDrawNodePort( portInfo, property );
 
 				return false;
 			}
