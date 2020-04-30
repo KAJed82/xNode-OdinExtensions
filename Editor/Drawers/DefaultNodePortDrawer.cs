@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace XNodeEditor.Odin
 {
+	[DrawerPriority( 0, 0, 10 )]
 	public class DefaultNodePortDrawer<T> : NodePortDrawer<T>
 	{
 		protected override bool CanDrawNodePort( NodePortInfo nodePortInfo, InspectorProperty property )

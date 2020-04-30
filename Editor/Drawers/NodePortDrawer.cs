@@ -48,10 +48,6 @@ namespace XNodeEditor.Odin
 				return;
 			}
 
-			var nodeEditorWindow = NodeEditorWindow.current;
-			if ( nodeEditorWindow == null )
-				return;
-
 			// I have to do more work than I used to
 			var parent = Property.ParentValueProperty;
 			if ( parent == null )
@@ -59,6 +55,7 @@ namespace XNodeEditor.Odin
 
 			var resolver = parent.ChildResolver as INodePortResolver;
 			var nodePortInfo = resolver.GetNodePortInfo( Property.Info );
+			var dontFold = Property.GetAttribute<DontFoldAttribute>() != null;
 
 			if ( Event.current.type == EventType.Layout )
 			{
@@ -81,6 +78,7 @@ namespace XNodeEditor.Odin
 				isVisible |= nodePortInfo.ShowBackingValue == ShowBackingValue.Always;
 				isVisible |= nodePortInfo.Port.IsDynamic; // Dynamics will be folded somewhere else
 				isVisible |= nodePortInfo.Port.IsConnected;
+				isVisible |= dontFold;
 			}
 
 			if ( !isVisible )

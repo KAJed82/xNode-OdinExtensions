@@ -16,16 +16,23 @@ namespace XNodeEditor.Odin
 			return nodePortInfo.ConnectionType == ConnectionType.Override;
 		}
 
+		protected GUIContent connectionName = GUIContent.none;
+
 		protected override void DrawPort( GUIContent label, NodePortInfo nodePortInfo, bool drawValue )
 		{
 			if ( Attribute.LabelWidth > 0 )
 				GUIHelper.PushLabelWidth( Attribute.LabelWidth );
 
 			// Extra sanity checks
-			if ( nodePortInfo.Port.IsConnected && nodePortInfo.Port.Connection != null && nodePortInfo.Port.Connection.node != null )
-				CallNextDrawer( new GUIContent( nodePortInfo.Port.Connection.node.name ) );
-			else
-				CallNextDrawer( label );
+			if ( Event.current.type == EventType.Layout )
+			{
+				if ( nodePortInfo.Port.IsConnected && nodePortInfo.Port.Connection != null && nodePortInfo.Port.Connection.node != null )
+					connectionName = new GUIContent( nodePortInfo.Port.Connection.node.name );
+				else
+					connectionName = label;
+			}
+
+			CallNextDrawer( connectionName );
 
 			if ( Attribute.LabelWidth > 0 )
 				GUIHelper.PopLabelWidth();

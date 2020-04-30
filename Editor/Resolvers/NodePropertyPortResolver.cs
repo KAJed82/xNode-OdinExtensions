@@ -17,7 +17,6 @@ namespace XNodeEditor.Odin
 	{
 		Node Node { get; }
 
-		NodePortInfo GetNodePortInfo( NodePort port );
 		NodePortInfo GetNodePortInfo( InspectorPropertyInfo sourceProperty );
 	}
 
