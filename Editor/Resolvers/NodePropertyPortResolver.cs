@@ -29,8 +29,8 @@ namespace XNodeEditor.Odin
 		public NodePort Port => Node.GetPort( BaseFieldName );
 
 		public ShowBackingValue ShowBackingValue { get; private set; }
-		public ConnectionType ConnectionType { get; private set; }
-		public TypeConstraint TypeConstraint { get; private set; }
+		public ConnectionType ConnectionType => Port.connectionType;
+		public TypeConstraint TypeConstraint => Port.typeConstraint;
 		public bool IsDynamicPortList { get; private set; }
 
 		public bool IsInput { get; private set; }
@@ -40,8 +40,6 @@ namespace XNodeEditor.Odin
 			string baseFieldName,
 			Node node, // Needed?
 			ShowBackingValue showBackingValue,
-			ConnectionType connectionType,
-			TypeConstraint typeConstraint,
 			bool isDynamicPortList,
 			bool isInput
 		)
@@ -50,8 +48,6 @@ namespace XNodeEditor.Odin
 			BaseFieldName = baseFieldName;
 			Node = node;
 			ShowBackingValue = showBackingValue;
-			ConnectionType = connectionType;
-			TypeConstraint = typeConstraint;
 			IsDynamicPortList = isDynamicPortList;
 			IsInput = isInput;
 		}
@@ -134,8 +130,6 @@ namespace XNodeEditor.Odin
 							baseFieldName,
 							Property.Tree.WeakTargets.FirstOrDefault() as Node, // Needed?
 							showBackingValue,
-							connectionType,
-							typeConstraint,
 							isDynamicPortList,
 							isInput
 						);

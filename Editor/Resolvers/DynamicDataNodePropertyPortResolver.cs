@@ -128,8 +128,6 @@ namespace XNodeEditor.Odin
 					portName,
 					node, // Needed?
 					nodePortInfo.ShowBackingValue,
-					nodePortInfo.ConnectionType,
-					nodePortInfo.TypeConstraint,
 					nodePortInfo.IsDynamicPortList,
 					nodePortInfo.IsInput
 				);
