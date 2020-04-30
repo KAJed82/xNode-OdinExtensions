@@ -266,7 +266,6 @@ namespace XNodeEditor.Odin
 		protected abstract void DrawPort( GUIContent label, NodePortInfo nodePortInfo, bool drawValue );
 	}
 
-	[DrawerPriority( 0, 0, 1000 )]
 	public class DefaultNodePortDrawer<T> : NodePortDrawer<T>
 	{
 		protected override bool CanDrawNodePort( NodePortInfo nodePortInfo, InspectorProperty property )
