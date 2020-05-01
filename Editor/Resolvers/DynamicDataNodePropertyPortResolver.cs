@@ -11,7 +11,7 @@ namespace XNodeEditor.Odin
 {
 	public interface IDynamicDataNodePropertyPortResolver : INodePortResolver
 	{
-		List<NodePort> DynamicPorts { get; }
+		DynamicPortInfo DynamicPortInfo { get; }
 	}
 
 	[ResolverPriority( 20 )] // No data at 30
@@ -51,11 +51,11 @@ namespace XNodeEditor.Odin
 
 		protected IDynamicNoDataNodePropertyPortResolver noDataResolver;
 
-		public List<NodePort> DynamicPorts { get; private set; }
+		public DynamicPortInfo DynamicPortInfo { get; private set; }
 		protected Dictionary<int, InspectorPropertyInfo> childPortInfos = new Dictionary<int, InspectorPropertyInfo>();
 
 		protected Dictionary<InspectorPropertyInfo, NodePortInfo> propertyInfoToNodePropertyInfo = new Dictionary<InspectorPropertyInfo, NodePortInfo>();
-		protected Dictionary<NodePort, NodePortInfo> nodePortToNodePortInfo = new Dictionary<NodePort, NodePortInfo>();
+		protected Dictionary<InspectorPropertyInfo, NodePortInfo> childInfoToNodePropertyInfo = new Dictionary<InspectorPropertyInfo, NodePortInfo>();
 
 		protected override void Initialize()
 		{
@@ -76,18 +76,7 @@ namespace XNodeEditor.Odin
 
 		public void UpdateDynamicPorts()
 		{
-			if ( DynamicPorts == null )
-				DynamicPorts = new List<NodePort>();
-			DynamicPorts.Clear();
-
-			IEnumerable<NodePort> ports = Enumerable.Range( 0, int.MaxValue ).Select( x => nodePortInfo.Node.GetPort( $"{nodePortInfo.BaseFieldName} {x}" ) );
-			foreach ( var port in ports )
-			{
-				if ( port == null ) // End on the first null port as well
-					break;
-
-				DynamicPorts.Add( port );
-			}
+			DynamicPortInfo = DynamicPortHelper.GetDynamicPortData( nodePortInfo.Node, nodePortInfo.Port.fieldName );
 
 			if ( noDataResolver != null )
 				noDataResolver.UpdateDynamicPorts();
@@ -96,7 +85,7 @@ namespace XNodeEditor.Odin
 		public override int ChildNameToIndex( string name )
 		{
 			if ( name.EndsWith( ":port" ) )
-				return CollectionResolverUtilities.DefaultChildNameToIndex( name ) + DynamicPorts.Count;
+				return CollectionResolverUtilities.DefaultChildNameToIndex( name ) + DynamicPortInfo.ports.Count;
 
 			return base.ChildNameToIndex( name );
 		}
@@ -119,14 +108,20 @@ namespace XNodeEditor.Odin
 						port = node.AddDynamicInput( typeof( TElement ), nodePortInfo.ConnectionType, nodePortInfo.TypeConstraint, portName );
 					else
 						port = node.AddDynamicOutput( typeof( TElement ), nodePortInfo.ConnectionType, nodePortInfo.TypeConstraint, portName );
+
+					UpdateDynamicPorts();
 				}
 
 				var childNodePortInfo = new NodePortInfo(
 					sourceChildInfo,
 					portName,
+					typeof(TElement),
 					node, // Needed?
 					nodePortInfo.ShowBackingValue,
+					nodePortInfo.ConnectionType,
+					nodePortInfo.TypeConstraint,
 					nodePortInfo.IsDynamicPortList,
+					true,
 					nodePortInfo.IsInput,
 					noDataResolver == null
 				);
@@ -143,7 +138,7 @@ namespace XNodeEditor.Odin
 				);
 
 				propertyInfoToNodePropertyInfo[sourceChildInfo] = childNodePortInfo;
-				nodePortToNodePortInfo[port] = childNodePortInfo;
+				childInfoToNodePropertyInfo[childPortInfo] = childNodePortInfo;
 
 				childPortInfos[index] = childPortInfo;
 			}
@@ -152,8 +147,8 @@ namespace XNodeEditor.Odin
 
 		public override InspectorPropertyInfo GetChildInfo( int childIndex )
 		{
-			if ( childIndex >= DynamicPorts.Count )
-				return GetInfoForPortAtIndex( childIndex - DynamicPorts.Count );
+			if ( childIndex >= DynamicPortInfo.ports.Count )
+				return GetInfoForPortAtIndex( childIndex - DynamicPortInfo.ports.Count );
 
 			return base.GetChildInfo( childIndex );
 		}
@@ -207,19 +202,19 @@ namespace XNodeEditor.Odin
 			UpdateDynamicPorts();
 
 			// Move everything down to make space
-			for ( int k = DynamicPorts.Count - 1; k > index; --k )
+			for ( int k = DynamicPortInfo.ports.Count - 1; k > index; --k )
 			{
-				for ( int j = 0; j < DynamicPorts[k - 1].ConnectionCount; j++ )
+				for ( int j = 0; j < DynamicPortInfo.ports[k - 1].ConnectionCount; j++ )
 				{
-					NodePort other = DynamicPorts[k - 1].GetConnection( j );
-					DynamicPorts[k - 1].Disconnect( other );
-					DynamicPorts[k].Connect( other );
+					NodePort other = DynamicPortInfo.ports[k - 1].GetConnection( j );
+					DynamicPortInfo.ports[k - 1].Disconnect( other );
+					DynamicPortInfo.ports[k].Connect( other );
 				}
 			}
 
 			// Let's just re-add connections to this node that were probably his
 			foreach ( var c in lastRemovedConnections )
-				DynamicPorts[index].Connect( c );
+				DynamicPortInfo.ports[index].Connect( c );
 
 			lastRemovedConnections.Clear();
 
@@ -238,34 +233,34 @@ namespace XNodeEditor.Odin
 
 		protected override void RemoveAt( TList collection, int index )
 		{
-			if ( DynamicPorts[index] == null )
+			if ( DynamicPortInfo.ports[index] == null )
 			{
 				Debug.LogWarning( "No port found at index " + index + " - Skipped" );
 			}
-			else if ( DynamicPorts.Count <= index )
+			else if ( DynamicPortInfo.ports.Count <= index )
 			{
-				Debug.LogWarning( "DynamicPorts[" + index + "] out of range. Length was " + DynamicPorts.Count + " - Skipped" );
+				Debug.LogWarning( "DynamicPorts[" + index + "] out of range. Length was " + DynamicPortInfo.ports.Count + " - Skipped" );
 			}
 			else
 			{
 				lastRemovedConnections.Clear();
-				lastRemovedConnections.AddRange( DynamicPorts[index].GetConnections() );
+				lastRemovedConnections.AddRange( DynamicPortInfo.ports[index].GetConnections() );
 
 				// Clear the removed ports connections
-				DynamicPorts[index].ClearConnections();
+				DynamicPortInfo.ports[index].ClearConnections();
 				// Move following connections one step up to replace the missing connection
-				for ( int k = index + 1; k < DynamicPorts.Count; k++ )
+				for ( int k = index + 1; k < DynamicPortInfo.ports.Count; k++ )
 				{
-					for ( int j = 0; j < DynamicPorts[k].ConnectionCount; j++ )
+					for ( int j = 0; j < DynamicPortInfo.ports[k].ConnectionCount; j++ )
 					{
-						NodePort other = DynamicPorts[k].GetConnection( j );
-						DynamicPorts[k].Disconnect( other );
-						DynamicPorts[k - 1].Connect( other );
+						NodePort other = DynamicPortInfo.ports[k].GetConnection( j );
+						DynamicPortInfo.ports[k].Disconnect( other );
+						DynamicPortInfo.ports[k - 1].Connect( other );
 					}
 				}
 
 				// Remove the last dynamic port, to avoid messing up the indexing
-				nodePortInfo.Node.RemoveDynamicPort( DynamicPorts[DynamicPorts.Count() - 1].fieldName );
+				nodePortInfo.Node.RemoveDynamicPort( DynamicPortInfo.ports[DynamicPortInfo.ports.Count() - 1].fieldName );
 				UpdateDynamicPorts();
 			}
 
@@ -275,7 +270,7 @@ namespace XNodeEditor.Odin
 
 		protected override void Clear( TList collection )
 		{
-			foreach ( var port in DynamicPorts )
+			foreach ( var port in DynamicPortInfo.ports )
 				nodePortInfo.Node.RemoveDynamicPort( port );
 
 			lastRemovedConnections.Clear();

@@ -1,12 +1,45 @@
 ﻿
 using Sirenix.OdinInspector.Editor;
-
+using Sirenix.Utilities.Editor;
+using UnityEditor;
 using UnityEngine;
 
 using static XNode.Node;
 
 namespace XNodeEditor.Odin
 {
+	public static class NodePortDrawerHelper
+	{
+		public static bool DisplayMissingPort( NodePortInfo nodePortInfo )
+		{
+			if ( nodePortInfo.Port == null )
+			{
+				using ( new EditorGUILayout.VerticalScope() )
+				{
+					SirenixEditorGUI.ErrorMessageBox( "This port went missing." );
+					if ( GUILayout.Button( "Restore" ) )
+					{
+						// Was it dynamic?
+						if ( nodePortInfo.IsDynamic )
+						{
+							if ( nodePortInfo.IsInput )
+								nodePortInfo.Node.AddDynamicInput( nodePortInfo.Type, nodePortInfo.ConnectionType, nodePortInfo.TypeConstraint, nodePortInfo.BaseFieldName );
+							else
+								nodePortInfo.Node.AddDynamicOutput( nodePortInfo.Type, nodePortInfo.ConnectionType, nodePortInfo.TypeConstraint, nodePortInfo.BaseFieldName );
+						}
+						else
+						{
+							nodePortInfo.Node.UpdatePorts();
+						}
+					}
+				}
+				return true;
+			}
+
+			return false;
+		}
+	}
+
 	public abstract class NodePortDrawer<T> : OdinValueDrawer<T>
 	{
 		protected sealed override bool CanDrawValueProperty( InspectorProperty property )
@@ -23,7 +56,7 @@ namespace XNodeEditor.Odin
 				var resolver = parent.ChildResolver as INodePortResolver;
 				NodePortInfo portInfo = resolver.GetNodePortInfo( property.Info );
 				if ( portInfo != null )
-					return ( portInfo.Port.IsDynamic || !portInfo.IsDynamicPortList ) && CanDrawNodePort( portInfo, property );
+					return ( portInfo.IsDynamic || !portInfo.IsDynamicPortList ) && CanDrawNodePort( portInfo, property );
 
 				return false;
 			}
@@ -56,6 +89,9 @@ namespace XNodeEditor.Odin
 			var resolver = parent.ChildResolver as INodePortResolver;
 			var nodePortInfo = resolver.GetNodePortInfo( Property.Info );
 			var dontFold = Property.GetAttribute<DontFoldAttribute>() != null;
+
+			if ( NodePortDrawerHelper.DisplayMissingPort( nodePortInfo ) )
+				return;
 
 			if ( Event.current.type == EventType.Layout )
 			{

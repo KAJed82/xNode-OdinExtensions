@@ -51,9 +51,9 @@ namespace XNodeEditor.Odin
 		protected NodePortInfo nodePortInfo;
 
 		protected InspectorPropertyInfo fakeListInfo;
-		protected List<int> dynamicPorts;
+		protected List<TValue> dynamicPorts;
 
-		protected List<int> GetDynamicPorts( ref TValue owner )
+		protected List<TValue> GetDynamicPorts( ref TValue owner )
 		{
 			return dynamicPorts;
 		}
@@ -74,9 +74,9 @@ namespace XNodeEditor.Odin
 				NodePropertyPort.NodePortListPropertyName,
 				0,
 				Property.ValueEntry.SerializationBackend,
-				new GetterSetter<TValue, List<int>>(
+				new GetterSetter<TValue, List<TValue>>(
 				GetDynamicPorts,
-				( ref TValue owner, List<int> value ) => { }
+				( ref TValue owner, List<TValue> value ) => { }
 				),
 				Property.Attributes
 				.Where( x => !( x is PropertyGroupAttribute ) )
@@ -88,17 +88,12 @@ namespace XNodeEditor.Odin
 		public void UpdateDynamicPorts()
 		{
 			if ( dynamicPorts == null )
-				dynamicPorts = new List<int>();
+				dynamicPorts = new List<TValue>();
 			dynamicPorts.Clear();
 
-			IEnumerable<NodePort> ports = Enumerable.Range( 0, int.MaxValue ).Select( x => nodePortInfo.Node.GetPort( $"{nodePortInfo.Port.fieldName} {x}" ) );
-			foreach ( var port in ports )
-			{
-				if ( port == null ) // End on the first null port as well
-					break;
-
-				dynamicPorts.Add( default( int ) );
-			}
+			DynamicPortInfo dynamicPortInfo = DynamicPortHelper.GetDynamicPortData( nodePortInfo.Node, nodePortInfo.Port.fieldName );
+			for ( int i = dynamicPortInfo.min; i <= dynamicPortInfo.max; ++i )
+				dynamicPorts.Add( default( TValue ) );
 		}
 
 		public NodePortInfo GetNodePortInfo( NodePort port )

@@ -1,7 +1,7 @@
 ﻿using System;
 
 using Sirenix.OdinInspector.Editor;
-
+using Sirenix.Utilities.Editor;
 using UnityEngine;
 
 using static XNode.Node;
@@ -25,7 +25,7 @@ namespace XNodeEditor.Odin
 				var resolver = parent.ChildResolver as INodePortResolver;
 				NodePortInfo portInfo = resolver.GetNodePortInfo( property.Info );
 				if ( portInfo != null )
-					return ( portInfo.Port.IsDynamic || !portInfo.IsDynamicPortList ) && CanDrawNodePort( portInfo, property );
+					return ( portInfo.IsDynamic || !portInfo.IsDynamicPortList ) && CanDrawNodePort( portInfo, property );
 
 				return false;
 			}
@@ -58,6 +58,9 @@ namespace XNodeEditor.Odin
 			var resolver = parent.ChildResolver as INodePortResolver;
 			var nodePortInfo = resolver.GetNodePortInfo( Property.Info );
 			var dontFold = Property.GetAttribute<DontFoldAttribute>() != null;
+
+			if ( NodePortDrawerHelper.DisplayMissingPort( nodePortInfo ) )
+				return;
 
 			if ( Event.current.type == EventType.Layout )
 			{
@@ -111,7 +114,7 @@ namespace XNodeEditor.Odin
 				var resolver = parent.ChildResolver as INodePortResolver;
 				NodePortInfo portInfo = resolver.GetNodePortInfo( property.Info );
 				if ( portInfo != null )
-					return ( portInfo.Port.IsDynamic || !portInfo.IsDynamicPortList ) && CanDrawNodePort( portInfo, property );
+					return ( portInfo.IsDynamic || !portInfo.IsDynamicPortList ) && CanDrawNodePort( portInfo, property );
 
 				return false;
 			}
@@ -143,6 +146,9 @@ namespace XNodeEditor.Odin
 			var resolver = parent.ChildResolver as INodePortResolver;
 			var nodePortInfo = resolver.GetNodePortInfo( Property.Info );
 			var dontFold = Property.GetAttribute<DontFoldAttribute>() != null;
+
+			if ( NodePortDrawerHelper.DisplayMissingPort( nodePortInfo ) )
+				return;
 
 			if ( Event.current.type == EventType.Layout )
 			{

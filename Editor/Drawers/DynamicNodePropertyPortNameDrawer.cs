@@ -20,10 +20,10 @@ namespace XNodeEditor.Odin
 			if ( label == null )
 			{
 				// Maybe we don't want labels?
-				if ( Property.Parent.Parent != null && Property.Parent.Parent.ChildResolver is IDynamicNoDataNodePropertyPortResolver )
-					label = new GUIContent( $"{Property.Parent.Parent.NiceName} {Property.Index}" );
-				else
-					label = new GUIContent( $"{Property.Parent.NiceName} {Property.Index}" );
+				var resolver = Property.Parent.ChildResolver as IDynamicDataNodePropertyPortResolver;
+				var nodePortInfo = resolver.GetNodePortInfo( Property.Info );
+
+				label = new GUIContent( $"{nodePortInfo.BaseFieldName}" );
 			}
 
 			CallNextDrawer( label );

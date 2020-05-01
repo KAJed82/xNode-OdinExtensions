@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Text.RegularExpressions;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
@@ -23,18 +23,25 @@ namespace XNodeEditor.Odin
 
 	public class NodePortInfo
 	{
+		private ConnectionType _connectionType;
+		private TypeConstraint _typeConstraint;
+
 		public InspectorPropertyInfo SourcePropertyInfo { get; private set; }
 
 		public string BaseFieldName { get; private set; }
+
+		public Type Type { get; private set; }
 
 		public Node Node { get; private set; }
 		public NodePort Port => Node.GetPort( BaseFieldName );
 
 		public ShowBackingValue ShowBackingValue { get; private set; }
-		public ConnectionType ConnectionType => Port.connectionType;
-		public TypeConstraint TypeConstraint => Port.typeConstraint;
+		public ConnectionType ConnectionType { get => Port == null ? _connectionType : Port.connectionType; private set => _connectionType = value; }
+		public TypeConstraint TypeConstraint { get => Port == null ? _typeConstraint : Port.typeConstraint; private set => _typeConstraint = value; }
 
 		public bool IsDynamicPortList { get; private set; }
+		public bool IsDynamic { get; private set; }
+
 		public bool HasValue { get; }
 
 		public bool IsInput { get; private set; }
@@ -42,18 +49,26 @@ namespace XNodeEditor.Odin
 		public NodePortInfo(
 			InspectorPropertyInfo sourcePropertyInfo,
 			string baseFieldName,
+			Type type,
 			Node node, // Needed?
 			ShowBackingValue showBackingValue,
+			ConnectionType connectionType,
+			TypeConstraint typeConstraint,
 			bool isDynamicPortList,
+			bool isDynamic,
 			bool isInput,
 			bool hasValue
 		)
 		{
 			SourcePropertyInfo = sourcePropertyInfo;
 			BaseFieldName = baseFieldName;
+			Type = type;
 			Node = node;
 			ShowBackingValue = showBackingValue;
+			ConnectionType = connectionType;
+			TypeConstraint = typeConstraint;
 			IsDynamicPortList = isDynamicPortList;
+			IsDynamic = isDynamic;
 			IsInput = isInput;
 			HasValue = hasValue;
 		}
@@ -64,6 +79,8 @@ namespace XNodeEditor.Odin
 	[ResolverPriority( 10 )]
 	public abstract class NodePropertyPortResolver<T> : BaseMemberPropertyResolver<T>, IDisposable, INodePortResolver
 	{
+		protected static Regex s_DynamicPortRegex = new Regex( @"^(.+) (\d)$" );
+
 		private List<OdinPropertyProcessor> processors;
 
 		public virtual void Dispose()
@@ -147,9 +164,13 @@ namespace XNodeEditor.Odin
 						var nodePortInfo = new NodePortInfo(
 							info,
 							baseFieldName,
+							info.TypeOfValue,
 							Property.Tree.WeakTargets.FirstOrDefault() as Node, // Needed?
 							showBackingValue,
+							connectionType,
+							typeConstraint,
 							isDynamicPortList,
+							false,
 							isInput,
 							true
 						);
@@ -183,6 +204,30 @@ namespace XNodeEditor.Odin
 
 						infos.Insert( i, portInfo );
 						++i; // Skip the next entry
+					}
+				}
+
+				// If I find any dynamic ports that were not covered here then add them as well
+				// This should include anything that wouldn't be directly related to the ports I *did* find
+				foreach ( var port in Node.Ports )
+				{
+					if ( port.IsDynamic )
+					{
+						// If is likely to be an automatically added port?
+						var match = s_DynamicPortRegex.Match( port.fieldName );
+						if ( match != null )
+						{
+							var basePortName = match.Groups[1].Value;
+							var foundPort = Node.GetPort( basePortName );
+							if ( foundPort != null && nodePortToNodePortInfo.ContainsKey( foundPort ) )
+								continue;
+						}
+						else // Try to match a whole field
+						{
+						}
+
+						// No one claimed it?
+						Debug.Log( "Leftover: " + port.fieldName );
 					}
 				}
 			}
