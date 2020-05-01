@@ -60,16 +60,16 @@ namespace XNodeEditor.Odin
 			if ( Event.current.type == EventType.Layout )
 			{
 				isVisible = !nodePortInfo.Node.folded;
-				isVisible |= childResolver.DynamicPortInfo.ports.Any( x => x.IsConnected );
+				isVisible |= childResolver.AnyConnected;
 				isVisible |= dontFold;
 			}
 
 			if ( !isVisible )
 				return;
 
-			DrawPortList( label, nodePortInfo, childResolver.DynamicPortInfo.ports );
+			DrawPortList( label, nodePortInfo, childResolver );
 		}
 
-		protected abstract void DrawPortList( GUIContent label, NodePortInfo nodePortInfo, List<NodePort> nodePorts );
+		protected abstract void DrawPortList( GUIContent label, NodePortInfo nodePortInfo, IDynamicDataNodePropertyPortResolver resolver );
 	}
 }
