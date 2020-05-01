@@ -121,6 +121,9 @@ namespace XNodeEditor.Odin
 			var includeSpeciallySerializedMembers = !this.Property.ValueEntry.SerializationBackend.IsUnity;
 			var infos = InspectorPropertyInfoUtility.CreateMemberProperties( this.Property, typeof( T ), includeSpeciallySerializedMembers );
 
+			// If we resolve the ports from the port dictionary i might be able to communicate between properties
+			// in order to make dynamic port adding cleaner
+
 			// Port makers
 			{
 				for ( int i = 0; i < infos.Count; ++i )
@@ -227,7 +230,7 @@ namespace XNodeEditor.Odin
 						var info = InspectorPropertyInfo.CreateValue(
 							port.fieldName,
 							1,
-							SerializationBackend.None,
+							Property.ValueEntry.SerializationBackend,
 							new GetterSetter<T, int>(
 								( ref T owner ) => 0,
 								( ref T owner, int value ) => { }
