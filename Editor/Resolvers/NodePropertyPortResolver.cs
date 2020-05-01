@@ -241,15 +241,15 @@ namespace XNodeEditor.Odin
 						var nodePortInfo = new NodePortInfo(
 							info,
 							port.fieldName,
-							info.TypeOfValue,
+							port.ValueType,
 							Property.Tree.WeakTargets.FirstOrDefault() as Node, // Needed?
 							ShowBackingValue.Never,
 							port.connectionType,
 							port.typeConstraint,
 							false,
-							false,
+							true,
 							port.IsInput,
-							true
+							false
 						);
 
 						propertyInfoToNodePropertyInfo[info] = nodePortInfo;
@@ -279,7 +279,7 @@ namespace XNodeEditor.Odin
 				ProcessedMemberPropertyResolverExtensions.ProcessingOwnerType = typeof( T );
 				this.processors[i].ProcessMemberProperties( infos );
 			}
-
+			
 			return InspectorPropertyInfoUtility.BuildPropertyGroupsAndFinalize( this.Property, typeof( T ), infos, includeSpeciallySerializedMembers );
 		}
 
