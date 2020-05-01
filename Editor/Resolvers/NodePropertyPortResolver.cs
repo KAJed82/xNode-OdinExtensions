@@ -158,7 +158,8 @@ namespace XNodeEditor.Odin
 						// The port didn't exist... let's just make it exist again?
 						if ( port == null )
 						{
-							Debug.LogError( "WTF" );
+							Node.UpdatePorts();
+							port = Node.GetPort( info.PropertyName );
 						}
 
 						var nodePortInfo = new NodePortInfo(

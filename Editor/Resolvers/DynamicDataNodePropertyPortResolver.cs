@@ -75,7 +75,7 @@ namespace XNodeEditor.Odin
 			UpdateDynamicPorts();
 		}
 
-		public bool AnyConnected => true; // TODO: This should be something useful
+		public bool AnyConnected => childInfoToNodePropertyInfo.Select( x => x.Value ).Any( x => x.Port == null || x.Port.IsConnected );
 
 		public void UpdateDynamicPorts()
 		{
