@@ -216,19 +216,57 @@ namespace XNodeEditor.Odin
 					{
 						// If is likely to be an automatically added port?
 						var match = s_DynamicPortRegex.Match( port.fieldName );
-						if ( match != null )
+						if ( match != null ) // Matched numbered ports
 						{
 							var basePortName = match.Groups[1].Value;
 							var foundPort = Node.GetPort( basePortName );
-							if ( foundPort != null && nodePortToNodePortInfo.ContainsKey( foundPort ) )
+							if ( foundPort != null && foundPort.IsStatic )
 								continue;
 						}
-						else // Try to match a whole field
-						{
-						}
+
+						var info = InspectorPropertyInfo.CreateValue(
+							port.fieldName,
+							1,
+							SerializationBackend.None,
+							new GetterSetter<T, int>(
+								( ref T owner ) => 0,
+								( ref T owner, int value ) => { }
+							)
+						);
+
+						// Create a fake property and a fake node
+						var nodePortInfo = new NodePortInfo(
+							info,
+							port.fieldName,
+							info.TypeOfValue,
+							Property.Tree.WeakTargets.FirstOrDefault() as Node, // Needed?
+							ShowBackingValue.Never,
+							port.connectionType,
+							port.typeConstraint,
+							false,
+							false,
+							port.IsInput,
+							true
+						);
+
+						propertyInfoToNodePropertyInfo[info] = nodePortInfo;
+						nodePortToNodePortInfo[port] = nodePortInfo;
+
+						var portInfo = InspectorPropertyInfo.CreateValue(
+							$"{info.PropertyName}:port",
+							0,
+							Property.ValueEntry.SerializationBackend,
+							new GetterSetter<T, NodePort>(
+								( ref T owner ) => nodePortInfo.Port,
+								( ref T owner, NodePort value ) => { }
+							)
+							, new HideInInspector()
+						);
 
 						// No one claimed it?
-						Debug.Log( "Leftover: " + port.fieldName );
+
+						infos.Add( info );
+						infos.Add( portInfo );
 					}
 				}
 			}
