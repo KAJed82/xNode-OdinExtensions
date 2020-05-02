@@ -227,6 +227,8 @@ namespace XNodeEditor.Odin
 			);
 #endif
 
+			var displayDynamicPortsAttribute = Property.GetAttribute<DisplayDynamicPortsAttribute>();
+
 			// Port makers
 			{
 				for ( int i = 0; i < infos.Count; ++i )
@@ -315,24 +317,27 @@ namespace XNodeEditor.Odin
 					}
 				}
 
-				// If I find any dynamic ports that were not covered here then add them as well
-				// This should include anything that wouldn't be directly related to the ports I *did* find
-				foreach ( var port in Node.Ports )
+				if ( displayDynamicPortsAttribute != null )
 				{
-					if ( port.IsDynamic )
+					// If I find any dynamic ports that were not covered here then add them as well
+					// This should include anything that wouldn't be directly related to the ports I *did* find
+					foreach ( var port in Node.Ports )
 					{
-						// If is likely to be an automatically added port?
-						if ( IsManagedPort( port.fieldName ) )
-							continue;
+						if ( port.IsDynamic )
+						{
+							// If is likely to be an automatically added port?
+							if ( IsManagedPort( port.fieldName ) )
+								continue;
 
-						// No one claimed it?
-						var nodePortInfo = CreateLooseDynamicPortInfo( port, out var info, out var portInfo );
+							// No one claimed it?
+							var nodePortInfo = CreateLooseDynamicPortInfo( port, out var info, out var portInfo );
 
-						propertyToNodeProperty[info.PropertyName] = portInfo.PropertyName;
-						nameToNodePropertyInfo[portInfo.PropertyName] = nodePortInfo;
+							propertyToNodeProperty[info.PropertyName] = portInfo.PropertyName;
+							nameToNodePropertyInfo[portInfo.PropertyName] = nodePortInfo;
 
-						infos.Add( info );
-						infos.Add( portInfo );
+							infos.Add( info );
+							infos.Add( portInfo );
+						}
 					}
 				}
 			}
@@ -344,7 +349,8 @@ namespace XNodeEditor.Odin
 			}
 
 			EditorApplication.update -= Update;
-			EditorApplication.update += Update;
+			if ( displayDynamicPortsAttribute != null )
+				EditorApplication.update += Update;
 
 			knownPortKeys.Clear();
 			knownPortKeys.AddRange( Node.Ports.Select( x => x.fieldName ) );
