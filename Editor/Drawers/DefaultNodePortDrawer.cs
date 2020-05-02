@@ -8,9 +8,9 @@ using UnityEngine;
 namespace XNodeEditor.Odin
 {
 	[DrawerPriority( 0, 0, 10 )]
-	public class DefaultNodePortDrawer<T> : NodePortDrawer<T>
+	public class DefaultNodePortDrawer<T> : NodePortDrawer<T>, IDefinesGenericMenuItems
 	{
-		protected override bool CanDrawNodePort( NodePortInfo nodePortInfo, InspectorProperty property )
+		protected override bool CanDrawNodePort( INodePortResolver portResolver, NodePortInfo nodePortInfo, InspectorProperty property )
 		{
 			// Don't draw ports for lists that are also ports
 			if ( property.ChildResolver is ICollectionResolver )
@@ -22,31 +22,36 @@ namespace XNodeEditor.Odin
 			return true;
 		}
 
-		protected override void DrawPort( GUIContent label, INodePortResolver resolver, NodePortInfo nodePortInfo, bool drawValue )
+		public void PopulateGenericMenu( InspectorProperty property, GenericMenu genericMenu )
+		{
+
+		}
+
+		protected override void DrawPort( GUIContent label )
 		{
 			var nodeEditorWindow = NodeEditorWindow.current;
 			if ( nodeEditorWindow == null )
 				return;
 
-			NodeEditor nodeEditor = NodeEditor.GetEditor( nodePortInfo.Port.node, nodeEditorWindow );
+			NodeEditor nodeEditor = NodeEditor.GetEditor( NodePortInfo.Port.node, nodeEditorWindow );
 
 			using ( new EditorGUILayout.HorizontalScope() )
 			{
 				var portPosition = EditorGUILayout.GetControlRect( false, 0, GUILayout.Width( 0 ), GUILayout.Height( EditorGUIUtility.singleLineHeight ) );
 
 				// Inputs go on the left, outputs on the right
-				if ( nodePortInfo.Port.IsInput )
+				if ( NodePortInfo.Port.IsInput )
 				{
 					NodeEditorGUILayout.PortField(
 						new Vector2( 0, portPosition.y ),
-						 nodePortInfo.Port
+						 NodePortInfo.Port
 					);
 				}
 				else
 				{
 					NodeEditorGUILayout.PortField(
 						new Vector2( nodeEditor.GetWidth() - 16, portPosition.y ),
-					 nodePortInfo.Port
+					 NodePortInfo.Port
 					);
 				}
 
@@ -61,26 +66,26 @@ namespace XNodeEditor.Odin
 				}
 
 				bool drawLabel = label != null && label != GUIContent.none;
-				if ( nodePortInfo.Port.IsInput )
+				if ( NodePortInfo.Port.IsInput )
 				{
 					if ( drawLabel )
 						EditorGUILayout.PrefixLabel( label, GUI.skin.label );
 
-					if ( drawValue )
+					if ( DrawValue )
 					{
 						using ( new EditorGUILayout.VerticalScope() )
 							CallNextDrawer( null );
 					}
 
-					if ( !drawValue || drawLabel && Property.Parent != null && Property.Parent.ChildResolver is GroupPropertyResolver )
+					if ( !DrawValue || drawLabel && Property.Parent != null && Property.Parent.ChildResolver is GroupPropertyResolver )
 						GUILayout.FlexibleSpace();
 				}
 				else
 				{
-					if ( !drawValue || drawLabel && Property.Parent != null && Property.Parent.ChildResolver is GroupPropertyResolver )
+					if ( !DrawValue || drawLabel && Property.Parent != null && Property.Parent.ChildResolver is GroupPropertyResolver )
 						GUILayout.FlexibleSpace();
 
-					if ( drawValue )
+					if ( DrawValue )
 					{
 						using ( new EditorGUILayout.VerticalScope() )
 							CallNextDrawer( null );

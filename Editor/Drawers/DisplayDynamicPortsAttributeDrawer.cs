@@ -9,21 +9,21 @@ namespace XNodeEditor.Odin
 
 	public class DisplayDynamicPortsAttributeDrawer : NodePortAttributeDrawer<DisplayDynamicPortsAttribute>
 	{
-		protected override bool CanDrawNodePort( NodePortInfo nodePortInfo, InspectorProperty property )
+		protected override bool CanDrawNodePort( INodePortResolver portResolver, NodePortInfo nodePortInfo, InspectorProperty property )
 		{
 			return property.GetAttribute< DisplayDynamicPortsAttribute>().ShowRemoveButton;
 		}
 
-		protected override void DrawPort( GUIContent label, INodePortResolver resolver, NodePortInfo nodePortInfo, bool drawValue )
+		protected override void DrawPort( GUIContent label )
 		{
 			SirenixEditorGUI.BeginBox();
-			if ( nodePortInfo.IsInput )
+			if ( NodePortInfo.IsInput )
 			{
 				using ( new EditorGUILayout.HorizontalScope() )
 				{
 					CallNextDrawer( label );
 					if ( GUILayout.Button( "Remove" ) )
-						resolver.ForgetDynamicPort( Property );
+						PortResolver.ForgetDynamicPort( Property );
 				}
 			}
 			else
@@ -31,7 +31,7 @@ namespace XNodeEditor.Odin
 				using ( new EditorGUILayout.HorizontalScope() )
 				{
 					if ( GUILayout.Button( "Remove" ) )
-						resolver.ForgetDynamicPort( Property );
+						PortResolver.ForgetDynamicPort( Property );
 					CallNextDrawer( label );
 				}
 			}

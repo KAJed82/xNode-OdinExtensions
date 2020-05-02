@@ -17,7 +17,7 @@ namespace XNodeEditor.Odin
 
 		protected GUIContent connectionName = GUIContent.none;
 
-		protected override void DrawPort( GUIContent label, INodePortResolver resolver, NodePortInfo nodePortInfo, bool drawValue )
+		protected override void DrawPort( GUIContent label )
 		{
 			if ( Attribute.LabelWidth > 0 )
 				GUIHelper.PushLabelWidth( Attribute.LabelWidth );
@@ -25,8 +25,8 @@ namespace XNodeEditor.Odin
 			// Extra sanity checks
 			if ( Event.current.type == EventType.Layout )
 			{
-				if ( nodePortInfo.Port.IsConnected && nodePortInfo.Port.Connection != null && nodePortInfo.Port.Connection.node != null )
-					connectionName = new GUIContent( nodePortInfo.Port.Connection.node.name );
+				if ( NodePortInfo.Port.IsConnected && NodePortInfo.Port.Connection != null && NodePortInfo.Port.Connection.node != null )
+					connectionName = new GUIContent( NodePortInfo.Port.Connection.node.name );
 				else
 					connectionName = label;
 			}
