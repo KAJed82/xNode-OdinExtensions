@@ -270,6 +270,15 @@ namespace XNodeEditor.Odin
 			RemoveAt( collection, index );
 		}
 
+		protected NodePort ReplaceNodeForRemove( int index )
+		{
+			var childPortInfo = GetNodePortInfo( index ); // Info still exists when this happens (probably)
+			if ( childPortInfo.IsInput )
+				return childPortInfo.Node.AddDynamicInput( childPortInfo.Type, childPortInfo.ConnectionType, childPortInfo.TypeConstraint, childPortInfo.BaseFieldName );
+			else
+				return childPortInfo.Node.AddDynamicOutput( childPortInfo.Type, childPortInfo.ConnectionType, childPortInfo.TypeConstraint, childPortInfo.BaseFieldName );
+		}
+
 		protected List<NodePort> lastRemovedConnections = new List<NodePort>();
 
 		protected override void RemoveAt( TList collection, int index )
@@ -277,7 +286,9 @@ namespace XNodeEditor.Odin
 			NodePort indexPort = GetNodePort( index );
 
 			if ( indexPort == null )
-				Debug.LogWarning( "No port found at index " + index );
+			{
+				Debug.LogWarning( $"No port found at index {index}" );
+			}
 
 			lastRemovedConnections.Clear();
 			if ( indexPort != null )
@@ -298,14 +309,16 @@ namespace XNodeEditor.Odin
 				if ( kPort == null )
 					continue;
 
+				NodePort k1Port = GetNodePort( k - 1 );
+				// Port k - 1 missing means I need to actually rename a port instead
+				// Create k -1, add all the correct connections ... leave K alone because he existed
+				if ( k1Port == null )
+					k1Port = ReplaceNodeForRemove( k - 1 );
+
 				for ( int j = 0; j < kPort.ConnectionCount; j++ )
 				{
 					NodePort other = kPort.GetConnection( j );
 					kPort.Disconnect( other );
-
-					NodePort k1Port = GetNodePort( k - 1 );
-					if ( k1Port == null )
-						continue;
 
 					k1Port.Connect( other );
 				}
