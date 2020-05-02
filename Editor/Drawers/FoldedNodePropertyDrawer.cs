@@ -6,9 +6,9 @@ using UnityEngine;
 namespace XNodeEditor.Odin
 {
 	[DrawerPriority( 1.5, 0, 0 )]
-	internal class FoldedNodePropertyDrawer<T> : OdinValueDrawer<T>
+	internal class FoldedNodePropertyDrawer : OdinDrawer
 	{
-		protected override bool CanDrawValueProperty( InspectorProperty property )
+		public override bool CanDrawProperty( InspectorProperty property )
 		{
 			if ( !NodeEditor.InNodeEditor )
 				return false;
@@ -32,24 +32,29 @@ namespace XNodeEditor.Odin
 			return property.GetAttribute<DontFoldAttribute>() == null;
 		}
 
-		protected bool isVisible = false;
+		protected INodePortResolver PortResolver { get; private set; }
+		protected NodePortInfo NodePortInfo { get; private set; }
+		protected bool CanFold { get; private set; }
+		protected bool DrawValue { get; private set; }
 
-		protected override void DrawPropertyLayout( GUIContent label )
+		protected override void Initialize()
 		{
-			// Passthrough if we aren't in the node editor
-			if ( !NodeEditor.InNodeEditor )
-			{
-				CallNextDrawer( label );
-				return;
-			}
-
 			var parent = Property.ParentValueProperty;
 			if ( parent == null )
 				parent = Property.Tree.SecretRootProperty;
 
-			var resolver = parent.ChildResolver as INodePortResolver;
+			PortResolver = parent.ChildResolver as INodePortResolver;
+			NodePortInfo = PortResolver.GetNodePortInfo( Property.Name );
+			CanFold = Property.GetAttribute<DontFoldAttribute>() == null;
+			DrawValue = true;
+		}
+
+		private bool isVisible = false;
+
+		protected override void DrawPropertyLayout( GUIContent label )
+		{
 			if ( Event.current.type == EventType.Layout )
-				isVisible = !resolver.Node.folded;
+				isVisible = !PortResolver.Node.folded;
 
 			if ( !isVisible )
 				return;
