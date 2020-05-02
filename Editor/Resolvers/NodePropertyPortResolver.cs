@@ -169,6 +169,17 @@ namespace XNodeEditor.Odin
 		protected Dictionary<string, NodePortInfo> nameToNodePropertyInfo = new Dictionary<string, NodePortInfo>();
 		protected Dictionary<string, string> propertyToNodeProperty = new Dictionary<string, string>();
 
+		public NodePortInfo GetNodePortInfo( string propertyName )
+		{
+			if ( propertyToNodeProperty.TryGetValue( propertyName, out var portPropertyName ) )
+			{
+				if ( nameToNodePropertyInfo.TryGetValue( portPropertyName, out var nodePortInfo ) )
+					return nodePortInfo;
+			}
+
+			return null;
+		}
+
 		protected override void Initialize()
 		{
 			base.Initialize();
@@ -283,8 +294,8 @@ namespace XNodeEditor.Odin
 							true
 						);
 
-						propertyToNodeProperty[info.PropertyName] = baseFieldName;
-						nameToNodePropertyInfo[baseFieldName] = nodePortInfo;
+						propertyToNodeProperty[info.PropertyName] = portInfo.PropertyName;
+						nameToNodePropertyInfo[portInfo.PropertyName] = nodePortInfo;
 
 						if ( isDynamicPortList )
 						{
@@ -317,8 +328,8 @@ namespace XNodeEditor.Odin
 						// No one claimed it?
 						var nodePortInfo = CreateLooseDynamicPortInfo( port, out var info, out var portInfo );
 
-						propertyToNodeProperty[info.PropertyName] = port.fieldName;
-						nameToNodePropertyInfo[port.fieldName] = nodePortInfo;
+						propertyToNodeProperty[info.PropertyName] = portInfo.PropertyName;
+						nameToNodePropertyInfo[portInfo.PropertyName] = nodePortInfo;
 
 						infos.Add( info );
 						infos.Add( portInfo );
@@ -338,15 +349,6 @@ namespace XNodeEditor.Odin
 			knownPortKeys.Clear();
 			knownPortKeys.AddRange( Node.Ports.Select( x => x.fieldName ) );
 			return InspectorPropertyInfoUtility.BuildPropertyGroupsAndFinalize( this.Property, typeof( TValue ), infos, includeSpeciallySerializedMembers );
-		}
-
-		public NodePortInfo GetNodePortInfo( string propertyName )
-		{
-			if ( !propertyToNodeProperty.TryGetValue( propertyName, out var fieldName ) )
-				return null;
-
-			nameToNodePropertyInfo.TryGetValue( fieldName, out var nodePortInfo );
-			return nodePortInfo;
 		}
 
 		protected void RemoveProperty( int index )
@@ -478,8 +480,8 @@ namespace XNodeEditor.Odin
 				// No one claimed it?
 				var nodePortInfo = CreateLooseDynamicPortInfo( port, out var info, out var portInfo );
 
-				propertyToNodeProperty[info.PropertyName] = port.fieldName;
-				nameToNodePropertyInfo[port.fieldName] = nodePortInfo;
+				propertyToNodeProperty[info.PropertyName] = portInfo.PropertyName;
+				nameToNodePropertyInfo[portInfo.PropertyName] = nodePortInfo;
 
 				namesToIndex[info.PropertyName] = this.infos.Count;
 				this.infos.Add( info );

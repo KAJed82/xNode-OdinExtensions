@@ -58,6 +58,25 @@ namespace XNodeEditor.Odin
 		protected Dictionary<string, NodePortInfo> nameToNodePropertyInfo = new Dictionary<string, NodePortInfo>();
 		protected Dictionary<string, string> propertyToNodeProperty = new Dictionary<string, string>();
 
+		public NodePortInfo GetNodePortInfo( string propertyName )
+		{
+			// Ensure the properties exist
+			var index = CollectionResolverUtilities.DefaultChildNameToIndex( propertyName );
+			var portInfo = GetInfoForPortAtIndex( index );
+			if ( portInfo == null )
+				return null;
+
+			if ( propertyToNodeProperty.TryGetValue( propertyName, out var portPropertyName ) )
+			{
+				if ( nameToNodePropertyInfo.TryGetValue( portPropertyName, out var nodePortInfo ) )
+				{
+					return nodePortInfo;
+				}
+			}
+
+			return null;
+		}
+
 		protected override void Initialize()
 		{
 			// Port is already resolved for the base
@@ -139,8 +158,8 @@ namespace XNodeEditor.Odin
 					noDataResolver == null
 				);
 
-				propertyToNodeProperty[sourceChildInfo.PropertyName] = portName;
-				nameToNodePropertyInfo[portName] = nodePortInfo;
+				propertyToNodeProperty[sourceChildInfo.PropertyName] = childPortInfo.PropertyName;
+				nameToNodePropertyInfo[childPortInfo.PropertyName] = childNodePortInfo;
 
 				childPortInfos[index] = childPortInfo;
 			}
@@ -158,18 +177,6 @@ namespace XNodeEditor.Odin
 		protected override int GetChildCount( TList value )
 		{
 			return base.GetChildCount( value );
-		}
-
-		public NodePortInfo GetNodePortInfo( string propertyName )
-		{
-			var index = CollectionResolverUtilities.DefaultChildNameToIndex( propertyName );
-			var portInfo = GetInfoForPortAtIndex( index );
-			if ( portInfo == null )
-				return null;
-
-			NodePortInfo nodePortInfo;
-			nameToNodePropertyInfo.TryGetValue( propertyName, out nodePortInfo );
-			return nodePortInfo;
 		}
 
 		public void RememberDynamicPort( NodePortInfo nodePortInfo )
