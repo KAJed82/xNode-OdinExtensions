@@ -21,7 +21,7 @@ namespace XNodeEditor.Odin
 			{
 				// Maybe we don't want labels?
 				var resolver = Property.Parent.ChildResolver as IDynamicDataNodePropertyPortResolver;
-				var nodePortInfo = resolver.GetNodePortInfo( Property.Info );
+				var nodePortInfo = resolver.GetNodePortInfo( Property.Name );
 
 				label = new GUIContent( $"{nodePortInfo.BaseFieldName}" );
 			}

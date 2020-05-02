@@ -20,7 +20,7 @@ namespace XNodeEditor.Odin
 			if ( parent.ChildResolver is INodePortResolver )
 			{
 				var resolver = parent.ChildResolver as INodePortResolver;
-				NodePortInfo portInfo = resolver.GetNodePortInfo( property.Info );
+				NodePortInfo portInfo = resolver.GetNodePortInfo( property.Name );
 				if ( portInfo != null )
 					return false;
 			}

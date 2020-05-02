@@ -10,26 +10,36 @@ namespace XNodeEditor.Odin
 {
 	public static class NodePortDrawerHelper
 	{
-		public static bool DisplayMissingPort( NodePortInfo nodePortInfo )
+		public static bool DisplayMissingPort( InspectorProperty property, INodePortResolver resolver, NodePortInfo nodePortInfo )
 		{
+			if ( nodePortInfo == null )
+			{
+				SirenixEditorGUI.ErrorMessageBox( $"This info went missing. {property.Name}" );
+				return true;
+			}
+
 			if ( nodePortInfo.Port == null )
 			{
 				using ( new EditorGUILayout.VerticalScope() )
 				{
 					SirenixEditorGUI.ErrorMessageBox( "This port went missing." );
-					if ( GUILayout.Button( "Restore" ) )
+					using ( new EditorGUILayout.HorizontalScope() )
 					{
-						// Was it dynamic?
-						if ( nodePortInfo.IsDynamic )
+						if ( GUILayout.Button( "Restore" ) )
 						{
-							if ( nodePortInfo.IsInput )
-								nodePortInfo.Node.AddDynamicInput( nodePortInfo.Type, nodePortInfo.ConnectionType, nodePortInfo.TypeConstraint, nodePortInfo.BaseFieldName );
+							// Was it dynamic?
+							if ( nodePortInfo.IsDynamic )
+							{
+								resolver.RememberDynamicPort( nodePortInfo );
+							}
 							else
-								nodePortInfo.Node.AddDynamicOutput( nodePortInfo.Type, nodePortInfo.ConnectionType, nodePortInfo.TypeConstraint, nodePortInfo.BaseFieldName );
+							{
+								nodePortInfo.Node.UpdatePorts();
+							}
 						}
-						else
+						if ( GUILayout.Button( "Remove" ) )
 						{
-							nodePortInfo.Node.UpdatePorts();
+							resolver.ForgetDynamicPort( nodePortInfo );
 						}
 					}
 				}
@@ -54,7 +64,7 @@ namespace XNodeEditor.Odin
 			if ( parent.ChildResolver is INodePortResolver )
 			{
 				var resolver = parent.ChildResolver as INodePortResolver;
-				NodePortInfo portInfo = resolver.GetNodePortInfo( property.Info );
+				NodePortInfo portInfo = resolver.GetNodePortInfo( property.Name );
 				if ( portInfo != null )
 					return ( portInfo.IsDynamic || !portInfo.IsDynamicPortList ) && CanDrawNodePort( portInfo, property );
 
@@ -87,10 +97,10 @@ namespace XNodeEditor.Odin
 				parent = Property.Tree.SecretRootProperty;
 
 			var resolver = parent.ChildResolver as INodePortResolver;
-			var nodePortInfo = resolver.GetNodePortInfo( Property.Info );
+			var nodePortInfo = resolver.GetNodePortInfo( Property.Name );
 			var dontFold = Property.GetAttribute<DontFoldAttribute>() != null;
 
-			if ( NodePortDrawerHelper.DisplayMissingPort( nodePortInfo ) )
+			if ( NodePortDrawerHelper.DisplayMissingPort( Property, resolver, nodePortInfo ) )
 				return;
 
 			if ( Event.current.type == EventType.Layout )

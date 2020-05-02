@@ -39,7 +39,7 @@ namespace XNodeEditor.Odin
 			if ( resolver == null )
 				return false;
 
-			NodePortInfo portInfo = resolver.GetNodePortInfo( property.Info );
+			NodePortInfo portInfo = resolver.GetNodePortInfo( property.Name );
 			return portInfo != null; // I am a port!
 		}
 
@@ -55,8 +55,8 @@ namespace XNodeEditor.Odin
 		//public DynamicPortInfo DynamicPortInfo { get; private set; }
 		protected Dictionary<int, InspectorPropertyInfo> childPortInfos = new Dictionary<int, InspectorPropertyInfo>();
 
-		protected Dictionary<InspectorPropertyInfo, NodePortInfo> propertyInfoToNodePropertyInfo = new Dictionary<InspectorPropertyInfo, NodePortInfo>();
-		protected Dictionary<InspectorPropertyInfo, NodePortInfo> childInfoToNodePropertyInfo = new Dictionary<InspectorPropertyInfo, NodePortInfo>();
+		protected Dictionary<string, NodePortInfo> nameToNodePropertyInfo = new Dictionary<string, NodePortInfo>();
+		protected Dictionary<string, string> propertyToNodeProperty = new Dictionary<string, string>();
 
 		protected override void Initialize()
 		{
@@ -66,7 +66,7 @@ namespace XNodeEditor.Odin
 				parent = Property.Tree.SecretRootProperty;
 
 			portResolver = parent.ChildResolver as INodePortResolver;
-			nodePortInfo = portResolver.GetNodePortInfo( Property.Info );
+			nodePortInfo = portResolver.GetNodePortInfo( Property.Name );
 
 			noDataResolver = Property.ParentValueProperty == null ? null : parent.ChildResolver as IDynamicNoDataNodePropertyPortResolver;
 
@@ -75,7 +75,7 @@ namespace XNodeEditor.Odin
 			UpdateDynamicPorts();
 		}
 
-		public bool AnyConnected => childInfoToNodePropertyInfo.Select( x => x.Value ).Any( x => x.Port == null || x.Port.IsConnected );
+		public bool AnyConnected => nameToNodePropertyInfo.Select( x => x.Value ).Any( x => x.Port == null || x.Port.IsConnected );
 
 		public void UpdateDynamicPorts()
 		{
@@ -113,7 +113,19 @@ namespace XNodeEditor.Odin
 					UpdateDynamicPorts();
 				}
 
+				childPortInfo = InspectorPropertyInfo.CreateValue(
+					$"{CollectionResolverUtilities.DefaultIndexToChildName( index )}:port",
+					0,
+					Property.ValueEntry.SerializationBackend,
+					new GetterSetter<TList, NodePort>(
+						( ref TList owner ) => port,
+						( ref TList owner, NodePort value ) => { }
+					)
+					, new HideInInspector()
+				);
+
 				var childNodePortInfo = new NodePortInfo(
+					childPortInfo,
 					sourceChildInfo,
 					portName,
 					typeof( TElement ),
@@ -127,19 +139,8 @@ namespace XNodeEditor.Odin
 					noDataResolver == null
 				);
 
-				childPortInfo = InspectorPropertyInfo.CreateValue(
-					$"{CollectionResolverUtilities.DefaultIndexToChildName( index )}:port",
-					0,
-					Property.ValueEntry.SerializationBackend,
-					new GetterSetter<TList, NodePort>(
-						( ref TList owner ) => childNodePortInfo.Port,
-						( ref TList owner, NodePort value ) => { }
-					)
-					, new HideInInspector()
-				);
-
-				propertyInfoToNodePropertyInfo[sourceChildInfo] = childNodePortInfo;
-				childInfoToNodePropertyInfo[childPortInfo] = childNodePortInfo;
+				propertyToNodeProperty[sourceChildInfo.PropertyName] = portName;
+				nameToNodePropertyInfo[portName] = nodePortInfo;
 
 				childPortInfos[index] = childPortInfo;
 			}
@@ -159,16 +160,26 @@ namespace XNodeEditor.Odin
 			return base.GetChildCount( value );
 		}
 
-		public NodePortInfo GetNodePortInfo( InspectorPropertyInfo sourceProperty )
+		public NodePortInfo GetNodePortInfo( string propertyName )
 		{
-			var index = CollectionResolverUtilities.DefaultChildNameToIndex( sourceProperty.PropertyName );
+			var index = CollectionResolverUtilities.DefaultChildNameToIndex( propertyName );
 			var portInfo = GetInfoForPortAtIndex( index );
 			if ( portInfo == null )
 				return null;
 
 			NodePortInfo nodePortInfo;
-			propertyInfoToNodePropertyInfo.TryGetValue( sourceProperty, out nodePortInfo );
+			nameToNodePropertyInfo.TryGetValue( propertyName, out nodePortInfo );
 			return nodePortInfo;
+		}
+
+		public void RememberDynamicPort( NodePortInfo nodePortInfo )
+		{
+			throw new System.NotImplementedException();
+		}
+
+		public void ForgetDynamicPort( NodePortInfo nodePortInfo )
+		{
+			throw new System.NotImplementedException();
 		}
 
 		#region Collection Handlers
@@ -192,7 +203,7 @@ namespace XNodeEditor.Odin
 		protected NodePort GetNodePort( int index )
 		{
 			NodePort port;
-			if ( !childPortInfos.TryGetValue( index, out var kInfo ) || ( port = childInfoToNodePropertyInfo[kInfo].Port ) == null )
+			if ( !childPortInfos.TryGetValue( index, out var kInfo ) || ( port = nameToNodePropertyInfo[kInfo.PropertyName].Port ) == null )
 				return null;
 
 			return port;
@@ -201,7 +212,7 @@ namespace XNodeEditor.Odin
 		protected NodePortInfo GetNodePortInfo( int index )
 		{
 			if ( childPortInfos.TryGetValue( index, out var kInfo ) )
-				return childInfoToNodePropertyInfo[kInfo];
+				return nameToNodePropertyInfo[kInfo.PropertyName];
 
 			return null;
 		}
@@ -312,14 +323,14 @@ namespace XNodeEditor.Odin
 				NodePortInfo lastNodePortInfo = null;
 				childPortInfos.TryGetValue( ChildCount - 1, out childPortInfo );
 				if ( childPortInfo != null )
-					childInfoToNodePropertyInfo.TryGetValue( childPortInfo, out lastNodePortInfo );
+					nameToNodePropertyInfo.TryGetValue( childPortInfo.PropertyName, out lastNodePortInfo );
 
 				if ( childPortInfo != null )
 					childPortInfos.Remove( ChildCount - 1 );
 				if ( lastNodePortInfo != null )
 				{
-					childInfoToNodePropertyInfo.Remove( childPortInfo );
-					propertyInfoToNodePropertyInfo.Remove( lastNodePortInfo.SourcePropertyInfo );
+					nameToNodePropertyInfo.Remove( childPortInfo.PropertyName );
+					propertyToNodeProperty.Remove( lastNodePortInfo.SourcePropertyInfo.PropertyName );
 
 					if ( lastNodePortInfo.Port != null )
 						lastNodePortInfo.Node.RemoveDynamicPort( lastNodePortInfo.Port );

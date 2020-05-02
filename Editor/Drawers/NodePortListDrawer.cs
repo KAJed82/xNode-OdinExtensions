@@ -26,7 +26,7 @@ namespace XNodeEditor.Odin
 				if ( parent.ChildResolver is INodePortResolver )
 				{
 					var resolver = parent.ChildResolver as INodePortResolver;
-					NodePortInfo portInfo = resolver.GetNodePortInfo( property.Info );
+					NodePortInfo portInfo = resolver.GetNodePortInfo( property.Name );
 					if ( portInfo != null )
 						return true;
 				}
@@ -54,7 +54,7 @@ namespace XNodeEditor.Odin
 
 			var childResolver = Property.ChildResolver as IDynamicDataNodePropertyPortResolver;
 			var resolver = parent.ChildResolver as INodePortResolver;
-			var nodePortInfo = resolver.GetNodePortInfo( Property.Info );
+			var nodePortInfo = resolver.GetNodePortInfo( Property.Name );
 			var dontFold = Property.GetAttribute<DontFoldAttribute>() != null;
 
 			if ( Event.current.type == EventType.Layout )

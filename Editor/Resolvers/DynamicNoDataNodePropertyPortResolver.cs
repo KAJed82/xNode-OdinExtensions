@@ -36,7 +36,7 @@ namespace XNodeEditor.Odin
 				if ( resolver == null )
 					return false;
 
-				NodePortInfo portInfo = resolver.GetNodePortInfo( property.Info );
+				NodePortInfo portInfo = resolver.GetNodePortInfo( property.Name );
 				return portInfo != null && portInfo.IsDynamicPortList && !typeof( TValue ).ImplementsOrInherits( typeof( System.Collections.IList ) );
 			}
 
@@ -66,7 +66,7 @@ namespace XNodeEditor.Odin
 				parent = Property.Tree.SecretRootProperty;
 
 			portResolver = parent.ChildResolver as INodePortResolver;
-			nodePortInfo = portResolver.GetNodePortInfo( Property.Info );
+			nodePortInfo = portResolver.GetNodePortInfo( Property.Name );
 
 			UpdateDynamicPorts();
 
@@ -102,9 +102,19 @@ namespace XNodeEditor.Odin
 			return nodePortInfo;
 		}
 
-		public NodePortInfo GetNodePortInfo( InspectorPropertyInfo sourceProperty )
+		public NodePortInfo GetNodePortInfo( string propertyName )
 		{
 			return nodePortInfo;
+		}
+
+		public void RememberDynamicPort( NodePortInfo nodePortInfo )
+		{
+			throw new System.NotImplementedException();
+		}
+
+		public void ForgetDynamicPort( NodePortInfo nodePortInfo )
+		{
+			throw new System.NotImplementedException();
 		}
 
 		public override int ChildNameToIndex( string name )
