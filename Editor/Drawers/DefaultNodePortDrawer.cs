@@ -4,6 +4,7 @@ using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 
 using UnityEngine;
+using XNode;
 
 namespace XNodeEditor.Odin
 {
@@ -22,9 +23,56 @@ namespace XNodeEditor.Odin
 			return true;
 		}
 
-		public void PopulateGenericMenu( InspectorProperty property, GenericMenu genericMenu )
+		void IDefinesGenericMenuItems.PopulateGenericMenu( InspectorProperty property, GenericMenu genericMenu )
 		{
+			if ( NodePortInfo.Port.ConnectionCount > 0 )
+			{
+				// Remove all connections
+				genericMenu.AddSeparator( string.Empty );
+				genericMenu.AddItem( new GUIContent( "Clear Connections" ), false, ClearConnections );
+				genericMenu.AddSeparator( string.Empty );
 
+				for ( int i = 0; i < NodePortInfo.Port.ConnectionCount; ++i )
+				{
+					NodePort connection = NodePortInfo.Port.GetConnection( i );
+					if ( connection == null ) // Connection exists but isn't actually connected
+					{
+						genericMenu.AddItem( new GUIContent( "Remove blank connections" ), false, RemoveBlankConnections );
+						break;
+					}
+				}
+
+				for ( int i = 0; i < NodePortInfo.Port.ConnectionCount; ++i )
+				{
+					NodePort connection = NodePortInfo.Port.GetConnection( i );
+					if ( connection == null ) // Connection exists but isn't actually connected
+						continue;
+
+					int connectionIndex = i;
+					genericMenu.AddItem( new GUIContent( $"Disconnect {connectionIndex} {connection.node.name}:{connection.fieldName}" ), false, () => Disconnect( connectionIndex ) );
+				}
+			}
+		}
+
+		protected void ClearConnections()
+		{
+			EditorApplication.delayCall += () => NodePortInfo.Port.ClearConnections();
+		}
+
+		protected void RemoveBlankConnections()
+		{
+			EditorApplication.delayCall += () =>
+			  {
+				  NodePortInfo.Port.VerifyConnections();
+			  };
+		}
+
+		public void Disconnect( int connectionIndex )
+		{
+			EditorApplication.delayCall += () =>
+			  {
+				  NodePortInfo.Port.Disconnect( connectionIndex );
+			  };
 		}
 
 		protected override void DrawPort( GUIContent label )
