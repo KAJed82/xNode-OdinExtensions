@@ -17,7 +17,7 @@ namespace XNodeEditor.Odin
 
 		protected GUIContent connectionName = GUIContent.none;
 
-		protected override void DrawPort( GUIContent label, NodePortInfo nodePortInfo, bool drawValue )
+		protected override void DrawPort( GUIContent label, INodePortResolver resolver, NodePortInfo nodePortInfo, bool drawValue )
 		{
 			if ( Attribute.LabelWidth > 0 )
 				GUIHelper.PushLabelWidth( Attribute.LabelWidth );

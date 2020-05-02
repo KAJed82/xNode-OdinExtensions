@@ -169,6 +169,8 @@ namespace XNodeEditor.Odin
 		protected Dictionary<string, NodePortInfo> nameToNodePropertyInfo = new Dictionary<string, NodePortInfo>();
 		protected Dictionary<string, string> propertyToNodeProperty = new Dictionary<string, string>();
 
+		protected DisplayDynamicPortsAttribute displayDynamicPortsAttribute;
+
 		public NodePortInfo GetNodePortInfo( string propertyName )
 		{
 			if ( propertyToNodeProperty.TryGetValue( propertyName, out var portPropertyName ) )
@@ -227,7 +229,7 @@ namespace XNodeEditor.Odin
 			);
 #endif
 
-			var displayDynamicPortsAttribute = Property.GetAttribute<DisplayDynamicPortsAttribute>();
+			displayDynamicPortsAttribute = Property.GetAttribute<DisplayDynamicPortsAttribute>();
 
 			// Port makers
 			{
@@ -330,7 +332,7 @@ namespace XNodeEditor.Odin
 								continue;
 
 							// No one claimed it?
-							var nodePortInfo = CreateLooseDynamicPortInfo( port, out var info, out var portInfo );
+							var nodePortInfo = CreateLooseDynamicPortInfo( port, out var info, out var portInfo, displayDynamicPortsAttribute );
 
 							propertyToNodeProperty[info.PropertyName] = portInfo.PropertyName;
 							nameToNodePropertyInfo[portInfo.PropertyName] = nodePortInfo;
@@ -401,7 +403,7 @@ namespace XNodeEditor.Odin
 			RemoveProperty( portInfoIndex );
 		}
 
-		public NodePortInfo CreateLooseDynamicPortInfo( NodePort port, out InspectorPropertyInfo info, out InspectorPropertyInfo portInfo )
+		public NodePortInfo CreateLooseDynamicPortInfo( NodePort port, out InspectorPropertyInfo info, out InspectorPropertyInfo portInfo, params Attribute[] attributes )
 		{
 			info = InspectorPropertyInfo.CreateValue(
 				port.fieldName,
@@ -410,7 +412,8 @@ namespace XNodeEditor.Odin
 				new GetterSetter<TValue, int>(
 					( ref TValue owner ) => 0,
 					( ref TValue owner, int value ) => { }
-				)
+				),
+				attributes
 			);
 
 			portInfo = InspectorPropertyInfo.CreateValue(
@@ -490,7 +493,7 @@ namespace XNodeEditor.Odin
 				var port = Node.GetPort( gain );
 
 				// No one claimed it?
-				var nodePortInfo = CreateLooseDynamicPortInfo( port, out var info, out var portInfo );
+				var nodePortInfo = CreateLooseDynamicPortInfo( port, out var info, out var portInfo, displayDynamicPortsAttribute );
 
 				propertyToNodeProperty[info.PropertyName] = portInfo.PropertyName;
 				nameToNodePropertyInfo[portInfo.PropertyName] = nodePortInfo;

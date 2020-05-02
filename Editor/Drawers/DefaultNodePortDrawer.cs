@@ -22,7 +22,7 @@ namespace XNodeEditor.Odin
 			return true;
 		}
 
-		protected override void DrawPort( GUIContent label, NodePortInfo nodePortInfo, bool drawValue )
+		protected override void DrawPort( GUIContent label, INodePortResolver resolver, NodePortInfo nodePortInfo, bool drawValue )
 		{
 			var nodeEditorWindow = NodeEditorWindow.current;
 			if ( nodeEditorWindow == null )

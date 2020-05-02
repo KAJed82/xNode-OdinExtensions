@@ -91,10 +91,10 @@ namespace XNodeEditor.Odin
 			if ( !isVisible )
 				return;
 
-			DrawPort( label, nodePortInfo, drawValue );
+			DrawPort( label, resolver, nodePortInfo, drawValue );
 		}
 
-		protected abstract void DrawPort( GUIContent label, NodePortInfo nodePortInfo, bool drawValue );
+		protected abstract void DrawPort( GUIContent label, INodePortResolver resolver, NodePortInfo nodePortInfo, bool drawValue );
 	}
 
 	public abstract class NodePortAttributeDrawer<TAttribute, TValue> : OdinAttributeDrawer<TAttribute, TValue>
@@ -179,9 +179,9 @@ namespace XNodeEditor.Odin
 			if ( !isVisible )
 				return;
 
-			DrawPort( label, nodePortInfo, drawValue );
+			DrawPort( label, resolver, nodePortInfo, drawValue );
 		}
 
-		protected abstract void DrawPort( GUIContent label, NodePortInfo nodePortInfo, bool drawValue );
+		protected abstract void DrawPort( GUIContent label, INodePortResolver resolver, NodePortInfo nodePortInfo, bool drawValue );
 	}
 }
