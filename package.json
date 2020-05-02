@@ -1,0 +1,7 @@
+{
+  "name": "com.github.siccity.xnode.odin",
+  "description": "Provides a full Odin wrapper on xNode (requires the odin-support fork).",
+  "version": "1.0.0",
+  "unity": "2018.1",
+  "displayName": "xNode-OdinExtensions"
+}
