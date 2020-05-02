@@ -25,22 +25,19 @@ namespace XNodeEditor.Odin
 					SirenixEditorGUI.ErrorMessageBox( "This port went missing." );
 					using ( new EditorGUILayout.HorizontalScope() )
 					{
-						if ( GUILayout.Button( "Restore" ) )
+						if ( nodePortInfo.IsDynamic )
 						{
-							// Was it dynamic?
-							if ( nodePortInfo.IsDynamic )
-							{
-								resolver.RememberDynamicPort( nodePortInfo );
-							}
-							else
-							{
+							if ( GUILayout.Button( "Restore" ) )
+								resolver.RememberDynamicPort( property );
+							if ( GUILayout.Button( "Remove" ) )
+								resolver.ForgetDynamicPort( property );
+						}
+						else
+						{
+							if ( GUILayout.Button( "Restore" ) )
 								nodePortInfo.Node.UpdatePorts();
-							}
 						}
-						if ( GUILayout.Button( "Remove" ) )
-						{
-							resolver.ForgetDynamicPort( nodePortInfo );
-						}
+
 					}
 				}
 				return true;

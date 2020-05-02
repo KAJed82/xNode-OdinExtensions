@@ -92,7 +92,7 @@ namespace XNodeEditor.Odin
 			dynamicPorts.Clear();
 
 			DynamicPortInfo dynamicPortInfo = DynamicPortHelper.GetDynamicPortData( nodePortInfo.Node, nodePortInfo.Port.fieldName );
-			for ( int i = dynamicPortInfo.min; i <= dynamicPortInfo.max; ++i )
+			for ( int i = 0; i <= dynamicPortInfo.max; ++i )
 				dynamicPorts.Add( default( TValue ) );
 		}
 
@@ -107,12 +107,12 @@ namespace XNodeEditor.Odin
 			return nodePortInfo;
 		}
 
-		public void RememberDynamicPort( NodePortInfo nodePortInfo )
+		public void RememberDynamicPort( InspectorProperty property )
 		{
 			throw new System.NotImplementedException();
 		}
 
-		public void ForgetDynamicPort( NodePortInfo nodePortInfo )
+		public void ForgetDynamicPort( InspectorProperty property )
 		{
 			throw new System.NotImplementedException();
 		}

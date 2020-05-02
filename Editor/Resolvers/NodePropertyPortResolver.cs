@@ -20,8 +20,8 @@ namespace XNodeEditor.Odin
 
 		NodePortInfo GetNodePortInfo( string propertyName );
 
-		void RememberDynamicPort( NodePortInfo nodePortInfo );
-		void ForgetDynamicPort( NodePortInfo nodePortInfo );
+		void RememberDynamicPort( InspectorProperty property );
+		void ForgetDynamicPort( InspectorProperty property );
 	}
 
 	public class NodePortInfo
@@ -366,21 +366,24 @@ namespace XNodeEditor.Odin
 			}
 		}
 
-		public bool ChildPropertyRequiresRefresh( int index, InspectorPropertyInfo info )
+		public virtual bool ChildPropertyRequiresRefresh( int index, InspectorPropertyInfo info )
 		{
 			return this.GetChildInfo( index ) != info;
 		}
 
-		public void RememberDynamicPort( NodePortInfo nodePortInfo )
+		public void RememberDynamicPort( InspectorProperty property )
 		{
+			var nodePortInfo = GetNodePortInfo( property.Name );
 			if ( nodePortInfo.IsInput )
 				nodePortInfo.Node.AddDynamicInput( nodePortInfo.Type, nodePortInfo.ConnectionType, nodePortInfo.TypeConstraint, nodePortInfo.BaseFieldName );
 			else
 				nodePortInfo.Node.AddDynamicOutput( nodePortInfo.Type, nodePortInfo.ConnectionType, nodePortInfo.TypeConstraint, nodePortInfo.BaseFieldName );
 		}
 
-		public void ForgetDynamicPort( NodePortInfo nodePortInfo )
+		public void ForgetDynamicPort( InspectorProperty property )
 		{
+			var nodePortInfo = GetNodePortInfo( property.Name );
+
 			propertyToNodeProperty.Remove( nodePortInfo.SourcePropertyInfo.PropertyName );
 			nameToNodePropertyInfo.Remove( nodePortInfo.BaseFieldName );
 
@@ -439,6 +442,9 @@ namespace XNodeEditor.Odin
 
 		protected bool IsManagedPort( string portName )
 		{
+			if ( GetNodePortInfo( portName ) != null )
+				return true;
+
 			// If is likely to be an automatically added port?
 			var match = s_DynamicPortRegex.Match( portName );
 			if ( match != null ) // Matched numbered ports
