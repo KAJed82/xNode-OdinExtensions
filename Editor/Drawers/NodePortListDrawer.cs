@@ -37,39 +37,43 @@ namespace XNodeEditor.Odin
 			return false;
 		}
 
-		protected bool isVisible = false;
+		protected INodePortResolver PortResolver { get; private set; }
+		protected IDynamicDataNodePropertyPortResolver PortListResolver { get; private set; }
 
-		protected sealed override void DrawPropertyLayout( GUIContent label )
+		protected NodePortInfo NodePortInfo { get; private set; }
+		protected bool CanFold { get; private set; }
+		protected bool DrawValue { get; private set; }
+
+		protected override void Initialize()
 		{
-			if ( !NodeEditor.InNodeEditor )
-			{
-				CallNextDrawer( label );
-				return;
-			}
-
-			// I have to do more work than I used to
 			var parent = Property.ParentValueProperty;
 			if ( parent == null )
 				parent = Property.Tree.SecretRootProperty;
 
-			var childResolver = Property.ChildResolver as IDynamicDataNodePropertyPortResolver;
-			var resolver = parent.ChildResolver as INodePortResolver;
-			var nodePortInfo = resolver.GetNodePortInfo( Property.Name );
-			var dontFold = Property.GetAttribute<DontFoldAttribute>() != null;
+			PortResolver = parent.ChildResolver as INodePortResolver;
+			PortListResolver = Property.ChildResolver as IDynamicDataNodePropertyPortResolver;
+			NodePortInfo = PortResolver.GetNodePortInfo( Property.Name );
+			CanFold = Property.GetAttribute<DontFoldAttribute>() == null;
+			DrawValue = true;
+		}
 
+		private bool isVisible = false;
+
+		protected sealed override void DrawPropertyLayout( GUIContent label )
+		{
 			if ( Event.current.type == EventType.Layout )
 			{
-				isVisible = !nodePortInfo.Node.folded;
-				isVisible |= childResolver.AnyConnected;
-				isVisible |= dontFold;
+				isVisible = !NodePortInfo.Node.folded;
+				isVisible |= PortListResolver.AnyConnected;
+				isVisible |= !CanFold;
 			}
 
 			if ( !isVisible )
 				return;
 
-			DrawPortList( label, nodePortInfo, childResolver );
+			DrawPortList( label );
 		}
 
-		protected abstract void DrawPortList( GUIContent label, NodePortInfo nodePortInfo, IDynamicDataNodePropertyPortResolver resolver );
+		protected abstract void DrawPortList( GUIContent label );
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 using Sirenix.OdinInspector.Editor;
@@ -80,6 +81,8 @@ namespace XNodeEditor.Odin
 
 		protected override void Initialize()
 		{
+			Property.ValueEntry.Update();
+
 			// Port is already resolved for the base
 			var parent = Property.ParentValueProperty;
 			if ( parent == null )
@@ -91,9 +94,20 @@ namespace XNodeEditor.Odin
 			noDataResolver = Property.ParentValueProperty == null ? null : parent.ChildResolver as IDynamicNoDataNodePropertyPortResolver;
 
 			base.Initialize();
+
+			for ( int i = 0; i < ChildCount; ++i )
+			{
+				var info = GetInfoForPortAtIndex( i );
+			}
 		}
 
-		public bool AnyConnected => nameToNodePropertyInfo.Select( x => x.Value ).Any( x => x.Port == null || x.Port.IsConnected );
+		public bool AnyConnected
+		{
+			get
+			{
+				return nameToNodePropertyInfo.Select( x => x.Value ).Any( x => x.Port == null || x.Port.IsConnected );
+			}
+		}
 
 		public override int ChildNameToIndex( string name )
 		{
