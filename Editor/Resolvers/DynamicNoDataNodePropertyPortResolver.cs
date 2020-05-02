@@ -78,11 +78,13 @@ namespace XNodeEditor.Odin
 				GetDynamicPorts,
 				( ref TValue owner, List<TValue> value ) => { }
 				),
-				Property.Attributes
-				.Where( x => !( x is PropertyGroupAttribute ) )
-				.Where( x => !( x is InputAttribute ) )
-				.Where( x => !( x is OutputAttribute ) )
+				Property.Attributes.Where( x => x is ListDrawerSettingsAttribute )
 			);
+		}
+
+		protected virtual TValue GenerateDefaultValue()
+		{
+			return default( TValue );
 		}
 
 		public void UpdateDynamicPorts()
@@ -93,7 +95,7 @@ namespace XNodeEditor.Odin
 
 			DynamicPortInfo dynamicPortInfo = DynamicPortHelper.GetDynamicPortData( nodePortInfo.Node, nodePortInfo.Port.fieldName );
 			for ( int i = 0; i <= dynamicPortInfo.max; ++i )
-				dynamicPorts.Add( default( TValue ) );
+				dynamicPorts.Add( GenerateDefaultValue() );
 		}
 
 		public NodePortInfo GetNodePortInfo( NodePort port )
@@ -130,6 +132,15 @@ namespace XNodeEditor.Odin
 		protected override int GetChildCount( TValue value )
 		{
 			return 1;
+		}
+	}
+
+	[ResolverPriority( 31 )]
+	public class DynamicNoDataNodePropertyPortResolverForNullabel<TValue> : DynamicNoDataNodePropertyPortResolver<TValue> where TValue : new()
+	{
+		protected override TValue GenerateDefaultValue()
+		{
+			return new TValue();
 		}
 	}
 }
