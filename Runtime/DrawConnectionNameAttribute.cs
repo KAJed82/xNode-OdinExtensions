@@ -1,5 +1,4 @@
-﻿#if ODIN_INSPECTOR
-using System;
+﻿using System;
 
 [AttributeUsage( AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true )]
 public class DrawConnectionNameAttribute : Attribute {
@@ -14,4 +13,3 @@ public class DrawConnectionNameAttribute : Attribute {
         LabelWidth = labelWidth;
     }
 }
-#endif
