@@ -196,7 +196,7 @@ namespace XNodeEditor.Odin
 				this.processors = OdinPropertyProcessorLocator.GetMemberProcessors( this.Property );
 			}
 
-			var includeSpeciallySerializedMembers = !this.Property.ValueEntry.SerializationBackend.IsUnity;
+			var includeSpeciallySerializedMembers = this.Property.ValueEntry.SerializationBackend != SerializationBackend.Unity;
 			var infos = InspectorPropertyInfoUtility.CreateMemberProperties( this.Property, typeof( TValue ), includeSpeciallySerializedMembers );
 
 			// If we resolve the ports from the port dictionary i might be able to communicate between properties
@@ -401,6 +401,10 @@ namespace XNodeEditor.Odin
 
 			int portInfoIndex = namesToIndex[nodePortInfo.PortPropertyInfo.PropertyName];
 			RemoveProperty( portInfoIndex );
+
+			// If the port still exists then kill it
+			if ( nodePortInfo.Port != null && nodePortInfo.Node != null )
+				nodePortInfo.Node.RemoveDynamicPort( nodePortInfo.Port );
 		}
 
 		public NodePortInfo CreateLooseDynamicPortInfo( NodePort port, out InspectorPropertyInfo info, out InspectorPropertyInfo portInfo, params Attribute[] attributes )
