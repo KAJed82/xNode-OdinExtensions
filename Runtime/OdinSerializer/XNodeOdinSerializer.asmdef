@@ -1,0 +1,18 @@
+{
+    "name": "XNodeOdinSerializer",
+    "references": [
+        "XNode",
+        "Sirenix.Serialization"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "ODIN_INSPECTOR",
+        "ODIN_SERIALIZER"
+    ],
+    "versionDefines": []
+}
