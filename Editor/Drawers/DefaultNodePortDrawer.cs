@@ -77,31 +77,9 @@ namespace XNodeEditor.Odin
 
 		protected override void DrawPort( GUIContent label )
 		{
-			var nodeEditorWindow = NodeEditorWindow.current;
-			if ( nodeEditorWindow == null )
-				return;
-
-			NodeEditor nodeEditor = NodeEditor.GetEditor( NodePortInfo.Port.node, nodeEditorWindow );
-
 			using ( new EditorGUILayout.HorizontalScope() )
 			{
-				var portPosition = EditorGUILayout.GetControlRect( false, 0, GUILayout.Width( 0 ), GUILayout.Height( EditorGUIUtility.singleLineHeight ) );
-
-				// Inputs go on the left, outputs on the right
-				if ( NodePortInfo.Port.IsInput )
-				{
-					NodeEditorGUILayout.PortField(
-						new Vector2( 0, portPosition.y ),
-						 NodePortInfo.Port
-					);
-				}
-				else
-				{
-					NodeEditorGUILayout.PortField(
-						new Vector2( nodeEditor.GetWidth() - 16, portPosition.y ),
-					 NodePortInfo.Port
-					);
-				}
+				NodePortDrawerHelper.DrawPortHandle( NodePortInfo );
 
 				// Offset back to make up for the port draw
 				GUILayout.Space( -4 );
