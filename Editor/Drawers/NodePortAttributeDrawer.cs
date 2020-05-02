@@ -3,13 +3,13 @@
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities.Editor;
 using UnityEngine;
-
+using XNode.Odin;
 using static XNode.Node;
 
 namespace XNodeEditor.Odin
 {
 	public abstract class NodePortAttributeDrawer<TAttribute> : OdinAttributeDrawer<TAttribute>
-		where TAttribute : Attribute
+		where TAttribute : NodePortAttribute
 	{
 		protected sealed override bool CanDrawAttributeProperty( InspectorProperty property )
 		{
@@ -98,7 +98,7 @@ namespace XNodeEditor.Odin
 	}
 
 	public abstract class NodePortAttributeDrawer<TAttribute, TValue> : OdinAttributeDrawer<TAttribute, TValue>
-		where TAttribute : Attribute
+		where TAttribute : NodePortAttribute
 	{
 		protected sealed override bool CanDrawAttributeValueProperty( InspectorProperty property )
 		{

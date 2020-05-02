@@ -1,6 +1,7 @@
 ﻿using Sirenix.OdinInspector.Editor;
 
 using UnityEngine;
+using XNode.Odin;
 
 namespace XNodeEditor.Odin
 {

@@ -9,8 +9,7 @@ using Sirenix.Utilities;
 using UnityEngine;
 
 using XNode;
-
-using static XNode.Node;
+using XNode.Odin;
 
 namespace XNodeEditor.Odin
 {
@@ -78,7 +77,8 @@ namespace XNodeEditor.Odin
 				GetDynamicPorts,
 				( ref TValue owner, List<TValue> value ) => { }
 				),
-				Property.Attributes.Where( x => x is ListDrawerSettingsAttribute )
+				Property.Attributes
+				.Where( x => x is ListDrawerSettingsAttribute || x is NodePortAttribute )
 			);
 		}
 

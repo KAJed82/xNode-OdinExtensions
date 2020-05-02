@@ -3,7 +3,7 @@ using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities.Editor;
 
 using UnityEngine;
-
+using XNode.Odin;
 using static XNode.Node;
 
 namespace XNodeEditor.Odin

@@ -9,7 +9,7 @@ using UnityEditor;
 using UnityEngine;
 
 using XNode;
-
+using XNode.Odin;
 using static XNode.Node;
 
 namespace XNodeEditor.Odin
