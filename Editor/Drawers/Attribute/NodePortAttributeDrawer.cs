@@ -41,7 +41,9 @@ namespace XNodeEditor.Odin
 		protected INodePortResolver PortResolver { get; private set; }
 		protected NodePortInfo NodePortInfo { get; private set; }
 		protected bool CanFold { get; private set; }
+
 		protected bool DrawValue { get; private set; }
+		protected bool IsVisible { get; private set; }
 
 		protected override void Initialize()
 		{
@@ -54,8 +56,6 @@ namespace XNodeEditor.Odin
 			CanFold = Property.GetAttribute<DontFoldAttribute>() == null;
 			DrawValue = true;
 		}
-
-		private bool isVisible = false;
 
 		protected sealed override void DrawPropertyLayout( GUIContent label )
 		{
@@ -79,16 +79,15 @@ namespace XNodeEditor.Odin
 						break;
 				}
 
-				isVisible = !NodePortInfo.Node.folded;
-				isVisible |= NodePortInfo.ShowBackingValue == ShowBackingValue.Always;
-				isVisible |= NodePortInfo.Port.IsDynamic; // Dynamics will be folded somewhere else
-				isVisible |= NodePortInfo.Port.IsConnected;
-				isVisible |= !CanFold;
+				IsVisible = !NodePortInfo.Node.folded;
+				IsVisible |= NodePortInfo.ShowBackingValue == ShowBackingValue.Always;
+				IsVisible |= NodePortInfo.Port.IsConnected;
+				IsVisible |= !CanFold;
 
 				DrawValue &= NodePortInfo.HasValue;
 			}
 
-			if ( !isVisible )
+			if ( !IsVisible )
 				return;
 
 			DrawPort( label );
@@ -129,7 +128,9 @@ namespace XNodeEditor.Odin
 		protected INodePortResolver PortResolver { get; private set; }
 		protected NodePortInfo NodePortInfo { get; private set; }
 		protected bool CanFold { get; private set; }
+
 		protected bool DrawValue { get; private set; }
+		protected bool IsVisible { get; private set; }
 
 		protected override void Initialize()
 		{
@@ -142,8 +143,6 @@ namespace XNodeEditor.Odin
 			CanFold = Property.GetAttribute<DontFoldAttribute>() == null;
 			DrawValue = true;
 		}
-
-		private bool isVisible = false;
 
 		protected sealed override void DrawPropertyLayout( GUIContent label )
 		{
@@ -167,16 +166,15 @@ namespace XNodeEditor.Odin
 						break;
 				}
 
-				isVisible = !NodePortInfo.Node.folded;
-				isVisible |= NodePortInfo.ShowBackingValue == ShowBackingValue.Always;
-				isVisible |= NodePortInfo.Port.IsDynamic; // Dynamics will be folded somewhere else
-				isVisible |= NodePortInfo.Port.IsConnected;
-				isVisible |= !CanFold;
+				IsVisible = !NodePortInfo.Node.folded;
+				IsVisible |= NodePortInfo.ShowBackingValue == ShowBackingValue.Always;
+				IsVisible |= NodePortInfo.Port.IsConnected;
+				IsVisible |= !CanFold;
 
 				DrawValue &= NodePortInfo.HasValue;
 			}
 
-			if ( !isVisible )
+			if ( !IsVisible )
 				return;
 
 			DrawPort( label );
