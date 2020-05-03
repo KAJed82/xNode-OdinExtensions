@@ -5,7 +5,7 @@ using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
-
+using XNode;
 using static XNode.Node;
 
 namespace XNodeEditor.Odin
@@ -35,26 +35,31 @@ namespace XNodeEditor.Odin
 
 		public static void DrawPortHandle( NodePortInfo nodePortInfo )
 		{
+			DrawPortHandle( nodePortInfo.Port );
+		}
+
+		public static void DrawPortHandle( NodePort port )
+		{
 			var nodeEditorWindow = NodeEditorWindow.current;
 			if ( nodeEditorWindow == null )
 				return;
 
-			NodeEditor nodeEditor = NodeEditor.GetEditor( nodePortInfo.Port.node, nodeEditorWindow );
+			NodeEditor nodeEditor = NodeEditor.GetEditor( port.node, nodeEditorWindow );
 			var portPosition = EditorGUILayout.GetControlRect( false, 0, GUILayout.Width( 0 ), GUILayout.Height( EditorGUIUtility.singleLineHeight ) );
 
 			// Inputs go on the left, outputs on the right
-			if ( nodePortInfo.Port.IsInput )
+			if ( port.IsInput )
 			{
 				NodeEditorGUILayout.PortField(
 					new Vector2( 0, portPosition.y ),
-					 nodePortInfo.Port
+					 port
 				);
 			}
 			else
 			{
 				NodeEditorGUILayout.PortField(
 					new Vector2( nodeEditor.GetWidth() - 16, portPosition.y ),
-				 nodePortInfo.Port
+				 port
 				);
 			}
 		}
