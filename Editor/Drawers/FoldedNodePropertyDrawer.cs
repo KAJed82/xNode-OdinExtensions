@@ -29,6 +29,9 @@ namespace XNodeEditor.Odin
 				return false;
 			}
 
+			if ( property.ChildResolver is GroupPropertyResolver )
+				return false;
+
 			return property.GetAttribute<DontFoldAttribute>() == null;
 		}
 
