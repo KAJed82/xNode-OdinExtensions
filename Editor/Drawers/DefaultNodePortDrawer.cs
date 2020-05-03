@@ -99,7 +99,7 @@ namespace XNodeEditor.Odin
 						if ( DrawValue )
 							EditorGUILayout.LabelField( label, GUILayout.Width( GUIHelper.BetterLabelWidth ) );
 						else
-							EditorGUILayout.LabelField( label, GUILayout.ExpandWidth( true ) );
+							EditorGUILayout.LabelField( label, GUILayout.MaxWidth( float.MaxValue ), GUILayout.ExpandWidth( true ) );
 					}
 
 					if ( DrawValue )
@@ -127,7 +127,7 @@ namespace XNodeEditor.Odin
 						if ( DrawValue )
 							EditorGUILayout.LabelField( label, NodeEditorResources.OutputPort, GUILayout.Width( GUIHelper.BetterLabelWidth ) );
 						else
-							EditorGUILayout.LabelField( label, NodeEditorResources.OutputPort, GUILayout.ExpandWidth( true ) );
+							EditorGUILayout.LabelField( label, NodeEditorResources.OutputPort, GUILayout.MaxWidth( float.MaxValue ), GUILayout.ExpandWidth( true ) );
 					}
 				}
 			}
