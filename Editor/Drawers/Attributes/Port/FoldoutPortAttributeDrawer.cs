@@ -1,4 +1,5 @@
-﻿using Sirenix.Utilities.Editor;
+﻿using Sirenix.OdinInspector.Editor;
+using Sirenix.Utilities.Editor;
 using UnityEngine;
 using XNode.Odin;
 
@@ -12,19 +13,20 @@ namespace XNodeEditor.Odin
 			base.Initialize();
 
 			NodePortDrawerHelper.DisableDefaultPortDrawer( this );
+			isUnfolded = Property.Context.GetPersistent( this, nameof( isUnfolded ), GeneralDrawerConfig.Instance.ExpandFoldoutByDefault );
 		}
 
-		protected bool isVisible;
+		protected LocalPersistentContext<bool> isUnfolded;
 
 		protected override void DrawPort( GUIContent label )
 		{
 			SirenixEditorGUI.BeginBox();
 			SirenixEditorGUI.BeginBoxHeader();
-			isVisible = SirenixEditorGUI.Foldout( isVisible, label == null ? GUIContent.none : label );
+			isUnfolded.Value = SirenixEditorGUI.Foldout( isUnfolded.Value, label == null ? GUIContent.none : label );
 			NodePortDrawerHelper.DrawPortHandle( NodePortInfo );
 			SirenixEditorGUI.EndBoxHeader();
 
-			if ( SirenixEditorGUI.BeginFadeGroup( this, isVisible ) )
+			if ( SirenixEditorGUI.BeginFadeGroup( this, isUnfolded.Value ) )
 				CallNextDrawer( null );
 			SirenixEditorGUI.EndFadeGroup();
 
