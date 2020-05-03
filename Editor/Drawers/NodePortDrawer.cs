@@ -10,6 +10,13 @@ using static XNode.Node;
 
 namespace XNodeEditor.Odin
 {
+	public class NodePortDrawerPriorityAttribute : DrawerPriorityAttribute
+	{
+		public NodePortDrawerPriorityAttribute( int offset = 0 ) : base( 0, 1, offset )
+		{
+		}
+	}
+
 	public abstract class NodePortDrawer<T> : OdinValueDrawer<T>
 	{
 		protected sealed override bool CanDrawValueProperty( InspectorProperty property )

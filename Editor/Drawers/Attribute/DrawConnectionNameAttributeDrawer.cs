@@ -8,6 +8,7 @@ using static XNode.Node;
 
 namespace XNodeEditor.Odin
 {
+	[NodePortAttributeDrawerPriority]
 	public class DrawConnectionNameAttributeDrawer<T> : NodePortAttributeDrawer<DrawConnectionNameAttribute, T>
 	{
 		protected override bool CanDrawNodePort( NodePortInfo nodePortInfo, InspectorProperty property )

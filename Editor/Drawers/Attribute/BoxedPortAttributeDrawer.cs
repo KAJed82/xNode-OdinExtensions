@@ -5,6 +5,7 @@ using XNode.Odin;
 
 namespace XNodeEditor.Odin
 {
+	[NodePortAttributeDrawerPriority]
 	public class BoxedPortAttributeDrawer<T> : NodePortAttributeDrawer<BoxedPortAttribute, T>
 	{
 		protected override void Initialize()

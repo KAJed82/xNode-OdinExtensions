@@ -4,6 +4,7 @@ using XNode.Odin;
 
 namespace XNodeEditor.Odin
 {
+	[NodePortAttributeDrawerPriority]
 	public class FoldoutPortAttributeDrawer<T> : NodePortAttributeDrawer<FoldoutPortAttribute, T>
 	{
 		protected override void Initialize()

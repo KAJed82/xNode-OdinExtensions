@@ -6,7 +6,7 @@ using XNode.Odin;
 
 namespace XNodeEditor.Odin
 {
-
+	[NodePortAttributeDrawerPriority]
 	public class DisplayDynamicPortsAttributeDrawer : NodePortAttributeDrawer<DisplayDynamicPortsAttribute>
 	{
 		protected override bool CanDrawNodePort( INodePortResolver portResolver, NodePortInfo nodePortInfo, InspectorProperty property )

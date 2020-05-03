@@ -9,7 +9,7 @@ using XNode;
 
 namespace XNodeEditor.Odin
 {
-	[DrawerPriority( 0, 1, 0 )]
+	[NodePortDrawerPriority( 1 )]
 	public class DefaultNodePortListDrawer<T> : NodePortListDrawer<T>
 	{
 		protected override void DrawPortList( GUIContent label )

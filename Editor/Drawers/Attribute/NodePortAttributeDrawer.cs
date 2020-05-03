@@ -8,6 +8,13 @@ using static XNode.Node;
 
 namespace XNodeEditor.Odin
 {
+	public class NodePortAttributeDrawerPriorityAttribute : DrawerPriorityAttribute
+	{
+		public NodePortAttributeDrawerPriorityAttribute( int offset = 0 ) : base( 0, 1, 1000 + offset )
+		{
+		}
+	}
+
 	public abstract class NodePortAttributeDrawer<TAttribute> : OdinAttributeDrawer<TAttribute>
 		where TAttribute : NodePortAttribute
 	{

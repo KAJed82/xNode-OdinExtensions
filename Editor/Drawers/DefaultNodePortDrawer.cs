@@ -8,7 +8,7 @@ using XNode;
 
 namespace XNodeEditor.Odin
 {
-	[DrawerPriority( 0, 0, 10 )]
+	[NodePortDrawerPriority( 1 )]
 	public class DefaultNodePortDrawer<T> : NodePortDrawer<T>, IDefinesGenericMenuItems
 	{
 		protected override bool CanDrawNodePort( INodePortResolver portResolver, NodePortInfo nodePortInfo, InspectorProperty property )
