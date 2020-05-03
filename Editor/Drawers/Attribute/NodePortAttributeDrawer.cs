@@ -62,7 +62,7 @@ namespace XNodeEditor.Odin
 			if ( NodePortDrawerHelper.DisplayMissingPort( Property, PortResolver, NodePortInfo ) )
 				return;
 
-			if ( Event.current.type == EventType.Layout )
+			if ( Event.current.type == EventType.Layout && !NodeEditorWindow.current.IsDraggingPort )
 			{
 				switch ( NodePortInfo.ShowBackingValue )
 				{
@@ -149,7 +149,7 @@ namespace XNodeEditor.Odin
 			if ( NodePortDrawerHelper.DisplayMissingPort( Property, PortResolver, NodePortInfo ) )
 				return;
 
-			if ( Event.current.type == EventType.Layout )
+			if ( Event.current.type == EventType.Layout && !NodeEditorWindow.current.IsDraggingPort )
 			{
 				switch ( NodePortInfo.ShowBackingValue )
 				{
