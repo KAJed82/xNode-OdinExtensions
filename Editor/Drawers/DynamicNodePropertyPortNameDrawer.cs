@@ -1,22 +1,25 @@
 ﻿using Sirenix.OdinInspector.Editor;
-
+using Sirenix.Utilities.Editor;
 using UnityEngine;
 using XNode.Odin;
 
 namespace XNodeEditor.Odin
 {
 	[DrawerPriority( 1.1, 0, 0 )]
-	public class DynamicNodePropertyPortNameDrawer<T> : OdinValueDrawer<T>
+	public class DynamicNodePropertyPortNameDrawer<T> : NodePortDrawer<T>
 	{
-		protected override bool CanDrawValueProperty( InspectorProperty property )
+		protected override bool CanDrawNodePort( INodePortResolver portResolver, NodePortInfo nodePortInfo, InspectorProperty property )
 		{
+			if ( !base.CanDrawNodePort( portResolver, nodePortInfo, property ) )
+				return false;
+
 			if ( property.GetAttribute<HideConnectionLabelAttribute>() != null )
 				return false;
 
 			return property.Parent != null && property.Parent.ChildResolver is IDynamicDataNodePropertyPortResolver;
 		}
 
-		protected override void DrawPropertyLayout( GUIContent label )
+		protected override void DrawPort( GUIContent label )
 		{
 			if ( label == null )
 			{

@@ -78,7 +78,12 @@ namespace XNodeEditor.Odin
 				( ref TValue owner, List<TValue> value ) => { }
 				),
 				Property.Attributes
-				.Where( x => x is ListDrawerSettingsAttribute || x is NodePortAttribute )
+				.Where( x =>
+					x is ListDrawerSettingsAttribute ||
+					x is NodePortAttribute ||
+					x is ShowDrawerChainAttribute ||
+					x is ShowPropertyResolverAttribute
+				)
 			);
 		}
 

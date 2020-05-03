@@ -1,6 +1,6 @@
 ﻿
 using Sirenix.OdinInspector.Editor;
-
+using Sirenix.Utilities.Editor;
 using UnityEditor;
 
 using UnityEngine;
@@ -95,7 +95,12 @@ namespace XNodeEditor.Odin
 				if ( NodePortInfo.Port.IsInput )
 				{
 					if ( drawLabel )
-						EditorGUILayout.PrefixLabel( label, GUI.skin.label );
+					{
+						if ( DrawValue )
+							EditorGUILayout.LabelField( label, GUILayout.Width( GUIHelper.BetterLabelWidth ) );
+						else
+							EditorGUILayout.LabelField( label, GUILayout.ExpandWidth( true ) );
+					}
 
 					if ( DrawValue )
 					{
@@ -118,9 +123,13 @@ namespace XNodeEditor.Odin
 					}
 
 					if ( drawLabel )
-						EditorGUILayout.PrefixLabel( label, GUI.skin.label, NodeEditorResources.OutputPort );
+					{
+						if ( DrawValue )
+							EditorGUILayout.LabelField( label, NodeEditorResources.OutputPort, GUILayout.Width( GUIHelper.BetterLabelWidth ) );
+						else
+							EditorGUILayout.LabelField( label, NodeEditorResources.OutputPort, GUILayout.ExpandWidth( true ) );
+					}
 				}
-
 			}
 		}
 	}

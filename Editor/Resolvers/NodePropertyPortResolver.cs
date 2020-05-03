@@ -229,6 +229,7 @@ namespace XNodeEditor.Odin
 			);
 #endif
 
+			LabelWidthAttribute labelWidthAttribute = Property.GetAttribute<LabelWidthAttribute>();
 			displayDynamicPortsAttribute = Property.GetAttribute<DisplayDynamicPortsAttribute>();
 
 			// Port makers
@@ -236,6 +237,12 @@ namespace XNodeEditor.Odin
 				for ( int i = 0; i < infos.Count; ++i )
 				{
 					var info = infos[i];
+					if ( labelWidthAttribute != null )
+					{
+						if ( info.GetAttribute<LabelWidthAttribute>() == null )
+							info.GetEditableAttributesList().Add( labelWidthAttribute );
+					}
+
 					var inputAttribute = info.GetMemberInfo().GetAttribute<InputAttribute>();
 					var outputAttribute = info.GetMemberInfo().GetAttribute<OutputAttribute>();
 					if ( inputAttribute != null || outputAttribute != null ) // Make a port.... we'll deal with dynamic later
