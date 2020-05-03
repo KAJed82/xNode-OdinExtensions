@@ -1,10 +1,11 @@
 ﻿using Sirenix.Utilities.Editor;
+using UnityEditor;
 using UnityEngine;
 using XNode.Odin;
 
 namespace XNodeEditor.Odin
 {
-	public class FoldoutAttributeDrawer<T> : NodePortAttributeDrawer<FoldoutPortAttribute, T>
+	public class BoxedPortAttributeDrawer<T> : NodePortAttributeDrawer<BoxedPortAttribute, T>
 	{
 		protected override void Initialize()
 		{
@@ -13,19 +14,16 @@ namespace XNodeEditor.Odin
 			NodePortDrawerHelper.DisableDefaultPortDrawer( this );
 		}
 
-		protected bool isVisible;
-
 		protected override void DrawPort( GUIContent label )
 		{
 			SirenixEditorGUI.BeginBox();
 			SirenixEditorGUI.BeginBoxHeader();
-			isVisible = SirenixEditorGUI.Foldout( isVisible, label == null ? GUIContent.none : label );
+			if ( label != null )
+				EditorGUILayout.LabelField( label );
 			NodePortDrawerHelper.DrawPortHandle( NodePortInfo );
 			SirenixEditorGUI.EndBoxHeader();
 
-			if ( SirenixEditorGUI.BeginFadeGroup( this, isVisible ) )
-				CallNextDrawer( null );
-			SirenixEditorGUI.EndFadeGroup();
+			CallNextDrawer( null );
 
 			SirenixEditorGUI.EndBox();
 		}
