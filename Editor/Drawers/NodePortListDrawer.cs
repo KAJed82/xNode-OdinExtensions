@@ -61,7 +61,7 @@ namespace XNodeEditor.Odin
 
 		protected sealed override void DrawPropertyLayout( GUIContent label )
 		{
-			if ( Event.current.type == EventType.Layout )
+			if ( Event.current.type == EventType.Layout && !NodeEditorWindow.current.IsDraggingPort )
 			{
 				isVisible = !NodePortInfo.Node.folded;
 				isVisible |= PortListResolver.AnyConnected;
