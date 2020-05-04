@@ -20,9 +20,6 @@ namespace XNodeEditor.Odin
 
 		protected override void DrawPort( GUIContent label )
 		{
-			if ( Attribute.LabelWidth > 0 )
-				GUIHelper.PushLabelWidth( Attribute.LabelWidth );
-
 			// Extra sanity checks
 			if ( Event.current.type == EventType.Layout )
 			{
@@ -33,9 +30,6 @@ namespace XNodeEditor.Odin
 			}
 
 			CallNextDrawer( connectionName );
-
-			if ( Attribute.LabelWidth > 0 )
-				GUIHelper.PopLabelWidth();
 		}
 	}
 }
