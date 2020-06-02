@@ -84,6 +84,7 @@ namespace XNodeEditor.Odin
 					x is ShowDrawerChainAttribute ||
 					x is ShowPropertyResolverAttribute
 				)
+				.ToArray()
 			);
 		}
 

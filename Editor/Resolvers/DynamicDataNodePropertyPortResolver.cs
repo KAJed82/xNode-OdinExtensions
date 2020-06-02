@@ -45,7 +45,7 @@ namespace XNodeEditor.Odin
 			return portInfo != null; // I am a port!
 		}
 
-		protected override bool AllowNullValues => true;
+		protected override bool AllowNullValues => false;
 
 		public Node Node => nodePortInfo.Node;
 
