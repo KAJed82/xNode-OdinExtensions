@@ -8,14 +8,9 @@ using static XNode.Node;
 
 namespace XNodeEditor.Odin
 {
-	[NodePortAttributeDrawerPriority]
+	[DrawerPriority( 0.99, 0, 0 )]
 	public class DrawConnectionNameAttributeDrawer<T> : NodePortAttributeDrawer<DrawConnectionNameAttribute, T>
 	{
-		protected override bool CanDrawNodePort( NodePortInfo nodePortInfo, InspectorProperty property )
-		{
-			return nodePortInfo.ConnectionType == ConnectionType.Override;
-		}
-
 		protected GUIContent connectionName = GUIContent.none;
 
 		protected override void DrawPort( GUIContent label )
@@ -23,7 +18,8 @@ namespace XNodeEditor.Odin
 			// Extra sanity checks
 			if ( Event.current.type == EventType.Layout )
 			{
-				if ( NodePortInfo.Port.IsConnected && NodePortInfo.Port.Connection != null && NodePortInfo.Port.Connection.node != null )
+				if ( ( NodePortInfo.ConnectionType == ConnectionType.Override || NodePortInfo.Port.ConnectionCount == 1 ) &&
+						NodePortInfo.Port.IsConnected && NodePortInfo.Port.Connection != null && NodePortInfo.Port.Connection.node != null )
 					connectionName = new GUIContent( NodePortInfo.Port.Connection.node.name );
 				else
 					connectionName = label;
