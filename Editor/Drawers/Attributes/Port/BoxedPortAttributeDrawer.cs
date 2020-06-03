@@ -24,7 +24,10 @@ namespace XNodeEditor.Odin
 			NodePortDrawerHelper.DrawPortHandle( NodePortInfo );
 			SirenixEditorGUI.EndBoxHeader();
 
-			CallNextDrawer( null );
+			if ( DrawValue )
+				CallNextDrawer( null );
+			else
+				GUILayout.Space( -3.5f );
 
 			SirenixEditorGUI.EndBox();
 		}
