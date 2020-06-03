@@ -5,12 +5,15 @@ using UnityEditor;
 
 using UnityEngine;
 using XNode;
+using XNode.Odin;
 
 namespace XNodeEditor.Odin
 {
 	[NodePortDrawerPriority]
 	public class DefaultNodePortDrawer<T> : NodePortDrawer<T>, IDefinesGenericMenuItems
 	{
+		public bool hideContents = false;
+
 		protected override bool CanDrawNodePort( INodePortResolver portResolver, NodePortInfo nodePortInfo, InspectorProperty property )
 		{
 			// Don't draw ports for lists that are also ports
@@ -75,8 +78,26 @@ namespace XNodeEditor.Odin
 			  };
 		}
 
+		protected override void Initialize()
+		{
+			base.Initialize();
+
+			var configuration = Property.GetAttribute<NodePortConfigurationAttribute>();
+			if ( configuration != null )
+				hideContents = configuration.HideContents;
+		}
+
 		protected override void DrawPort( GUIContent label )
 		{
+			if ( hideContents )
+			{
+				NodePortDrawerHelper.DrawPortHandle( NodePortInfo );
+
+				// Offset back to make up for the port draw
+				GUILayout.Space( -18 );
+				return;
+			}
+
 			using ( new EditorGUILayout.HorizontalScope() )
 			{
 				NodePortDrawerHelper.DrawPortHandle( NodePortInfo );
