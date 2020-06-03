@@ -144,6 +144,14 @@ namespace XNodeEditor.Odin
 
 		protected static Regex s_DynamicPortRegex = new Regex( @"^(.+) (\d)$" );
 
+		public override bool CanResolveForPropertyFilter( InspectorProperty property )
+		{
+			if ( !NodeEditor.InNodeEditor )
+				return false;
+
+			return base.CanResolveForPropertyFilter( property );
+		}
+
 		private List<OdinPropertyProcessor> processors;
 
 		public virtual void Dispose()
