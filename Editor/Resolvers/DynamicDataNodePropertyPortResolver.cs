@@ -172,6 +172,8 @@ namespace XNodeEditor.Odin
 
 		protected override int GetChildCount( TList value )
 		{
+			if ( value == null )
+				return 0;
 			return base.GetChildCount( value );
 		}
 
