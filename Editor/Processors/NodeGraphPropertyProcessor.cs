@@ -60,7 +60,12 @@ namespace XNodeEditor.Odin
 				foreach ( var node in nodeGraph.nodes )
 				{
 					Undo.RegisterFullObjectHierarchyUndo( node, "Fold Nodes" );
-					node.folded = true;
+
+					bool foldable;
+					node.GetType().TryGetAttributeFoldable( out foldable );
+
+					if ( foldable )
+						node.folded = true;
 				}
 
 				Undo.CollapseUndoOperations( Undo.GetCurrentGroup() );
