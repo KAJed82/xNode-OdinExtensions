@@ -26,11 +26,17 @@ namespace XNodeEditor.Odin
 			if ( !NodeEditor.InNodeEditor )
 				return false;
 
+
 			var parent = property.ParentValueProperty;
+#if ODIN_INSPECTOR_3
+			if ( parent == null || parent == property.Tree.RootProperty ) // Root only
+			{
+				parent = property.Tree.RootProperty;
+#else
 			if ( parent == null ) // Root only
 			{
 				parent = property.Tree.SecretRootProperty;
-
+#endif
 				var resolver = parent.ChildResolver as INodePortResolver;
 				if ( resolver == null )
 					return false;
@@ -61,8 +67,13 @@ namespace XNodeEditor.Odin
 		{
 			// Port is already resolved for the base
 			var parent = Property.ParentValueProperty;
+#if ODIN_INSPECTOR_3
+			if ( parent == null )
+				parent = Property.Tree.RootProperty;
+#else
 			if ( parent == null )
 				parent = Property.Tree.SecretRootProperty;
+#endif
 
 			portResolver = parent.ChildResolver as INodePortResolver;
 			nodePortInfo = portResolver.GetNodePortInfo( Property.Name );

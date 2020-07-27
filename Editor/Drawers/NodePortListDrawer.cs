@@ -20,8 +20,13 @@ namespace XNodeEditor.Odin
 			if ( property.ChildResolver is IDynamicDataNodePropertyPortResolver )
 			{
 				var parent = property.ParentValueProperty;
+#if ODIN_INSPECTOR_3
+				if ( parent == null )
+					parent = property.Tree.RootProperty;
+#else
 				if ( parent == null )
 					parent = property.Tree.SecretRootProperty;
+#endif
 
 				if ( parent.ChildResolver is INodePortResolver )
 				{
@@ -47,8 +52,13 @@ namespace XNodeEditor.Odin
 		protected override void Initialize()
 		{
 			var parent = Property.ParentValueProperty;
+#if ODIN_INSPECTOR_3
+			if ( parent == null )
+				parent = Property.Tree.RootProperty;
+#else
 			if ( parent == null )
 				parent = Property.Tree.SecretRootProperty;
+#endif
 
 			PortResolver = parent.ChildResolver as INodePortResolver;
 			PortListResolver = Property.ChildResolver as IDynamicDataNodePropertyPortResolver;
