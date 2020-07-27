@@ -14,10 +14,10 @@ namespace XNodeEditor.Odin
 		{
 			if ( !NodeEditor.InNodeEditor )
 			{
-				if ( property.GetAttribute<HideOutsideNodeEditor>() != null )
+				if ( property.GetAttribute<HideOutsideNodeEditorAttribute>() != null )
 					return true;
 
-				if ( typeof( T ).GetCustomAttribute<HideOutsideNodeEditor>() != null )
+				if ( typeof( T ).GetCustomAttribute<HideOutsideNodeEditorAttribute>() != null )
 					return true;
 			}
 
