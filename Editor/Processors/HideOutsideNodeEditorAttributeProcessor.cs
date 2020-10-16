@@ -48,7 +48,7 @@ namespace XNodeEditor.Odin
 			for ( int i = propertyInfos.Count - 1; i >= 0; --i )
 			{
 				InspectorPropertyInfo p = propertyInfos[i];
-				if ( p.GetAttribute<HideOutsideNodeEditor>() != null )
+				if ( p.GetAttribute<HideOutsideNodeEditorAttribute>() != null )
 					propertyInfos.RemoveAt( i );
 			}
 		}
