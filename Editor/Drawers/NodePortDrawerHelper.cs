@@ -33,19 +33,19 @@ namespace XNodeEditor.Odin
 				defaultDrawer.SkipWhenDrawing = true;
 		}
 
-		public static void DrawPortHandle( NodePortInfo nodePortInfo )
+		public static void DrawPortHandle( NodePortInfo nodePortInfo, int overridePortHeight = -1 )
 		{
-			DrawPortHandle( nodePortInfo.Port );
+			DrawPortHandle( nodePortInfo.Port, overridePortHeight );
 		}
 
-		public static void DrawPortHandle( NodePort port )
+		public static void DrawPortHandle( NodePort port, int overridePortHeight = -1 )
 		{
 			var nodeEditorWindow = NodeEditorWindow.current;
 			if ( nodeEditorWindow == null )
 				return;
 
 			NodeEditor nodeEditor = NodeEditor.GetEditor( port.node, nodeEditorWindow );
-			var portPosition = EditorGUILayout.GetControlRect( false, 0, GUILayout.Width( 0 ), GUILayout.Height( EditorGUIUtility.singleLineHeight ) );
+			var portPosition = EditorGUILayout.GetControlRect( false, 0, GUILayout.Width( 0 ), GUILayout.Height( overridePortHeight >= 0 ? overridePortHeight : EditorGUIUtility.singleLineHeight ) );
 
 			// Inputs go on the left, outputs on the right
 			if ( port.IsInput )

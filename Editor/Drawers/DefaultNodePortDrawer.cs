@@ -9,7 +9,7 @@ using XNode.Odin;
 
 namespace XNodeEditor.Odin
 {
-	[NodePortDrawerPriority( 1 )]
+	[NodePortDrawerPriority]
 	public class DefaultNodePortDrawer<T> : NodePortDrawer<T>, IDefinesGenericMenuItems
 	{
 		public bool hideContents = false;

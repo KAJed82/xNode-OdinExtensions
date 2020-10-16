@@ -2,5 +2,5 @@
 
 namespace XNode.Odin
 {
-	public class HideOutsideNodeEditor : Attribute { }
+	public class HideOutsideNodeEditorAttribute : Attribute { }
 }
