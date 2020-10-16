@@ -34,4 +34,23 @@ namespace XNodeEditor.Odin
 			attributes.Add( new HideInInspector() );
 		}
 	}
+
+	// I shouldn't need this, but it guarantees things get removed that shouldn't be shown
+	public class HideOutsideNodeEditorPropertyProcessor<T> : OdinPropertyProcessor<T>
+	{
+		public override bool CanProcessForProperty( InspectorProperty property )
+		{
+			return !NodeEditor.InNodeEditor;
+		}
+
+		public override void ProcessMemberProperties( List<InspectorPropertyInfo> propertyInfos )
+		{
+			for ( int i = propertyInfos.Count - 1; i >= 0; --i )
+			{
+				InspectorPropertyInfo p = propertyInfos[i];
+				if ( p.GetAttribute<HideOutsideNodeEditor>() != null )
+					propertyInfos.RemoveAt( i );
+			}
+		}
+	}
 }

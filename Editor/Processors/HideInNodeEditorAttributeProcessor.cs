@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using UnityEngine;
 using XNode.Odin;
@@ -32,6 +33,25 @@ namespace XNodeEditor.Odin
 		public override void ProcessSelfAttributes( InspectorProperty property, List<Attribute> attributes )
 		{
 			attributes.Add( new HideInInspector() );
+		}
+	}
+
+	// I shouldn't need this, but it guarantees things get removed that shouldn't be shown
+	public class HideInNodeEditorPropertyProcessor<T> : OdinPropertyProcessor<T>
+	{
+		public override bool CanProcessForProperty( InspectorProperty property )
+		{
+			return NodeEditor.InNodeEditor;
+		}
+
+		public override void ProcessMemberProperties( List<InspectorPropertyInfo> propertyInfos )
+		{
+			for ( int i = propertyInfos.Count -1; i>=0;--i)
+			{
+				InspectorPropertyInfo p = propertyInfos[i];
+				if ( p.GetAttribute<HideInNodeEditorAttribute>() != null )
+					propertyInfos.RemoveAt( i );
+			}
 		}
 	}
 }
