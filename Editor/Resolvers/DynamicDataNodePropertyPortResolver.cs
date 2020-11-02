@@ -247,6 +247,7 @@ namespace XNodeEditor.Odin
 
 		protected override void InsertAt( TList collection, int index, object value )
 		{
+			int newChildCount = this.ChildCount + 1;
 			int nextId = this.ChildCount;
 
 			// Remove happens before insert and we lose all the connections
@@ -257,7 +258,7 @@ namespace XNodeEditor.Odin
 				nodePortInfo.Node.AddDynamicOutput( typeof( TElement ), nodePortInfo.ConnectionType, nodePortInfo.TypeConstraint, string.Format( "{0} {1}", nodePortInfo.BaseFieldName, nextId ) );
 
 			// Move everything down to make space - if something is missing just pretend we moved it?
-			for ( int k = ChildCount - 1; k > index; --k )
+			for ( int k = newChildCount - 1; k > index; --k )
 			{
 				NodePort k1Port = GetNodePort( k - 1 );
 				if ( k1Port == null ) // It is missing, I have nothing to move
