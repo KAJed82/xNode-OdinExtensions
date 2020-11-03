@@ -289,6 +289,8 @@ namespace XNodeEditor.Odin
 
 			//if ( noDataResolver == null )
 			base.InsertAt( collection, index, value );
+
+			this.ForceUpdateChildCount();
 		}
 
 		protected override void Remove( TList collection, object value )
@@ -356,6 +358,8 @@ namespace XNodeEditor.Odin
 				lastPort.node.RemoveDynamicPort( lastPort );
 
 			base.RemoveAt( collection, index );
+
+			this.ForceUpdateChildCount();
 		}
 
 		protected override void Clear( TList collection )
@@ -371,6 +375,6 @@ namespace XNodeEditor.Odin
 
 			base.Clear( collection );
 		}
-		#endregion
+#endregion
 	}
 }
