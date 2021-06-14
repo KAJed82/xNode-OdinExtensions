@@ -98,7 +98,7 @@ namespace XNodeEditor.Odin
 				}
 
 				IsVisible = !NodePortInfo.Node.folded;
-				IsVisible |= NodePortInfo.ShowBackingValue == ShowBackingValue.Always;
+				//IsVisible |= NodePortInfo.ShowBackingValue == ShowBackingValue.Always;
 				IsVisible |= PortResolver is IDynamicDataNodePropertyPortResolver; // Dynamics will be folded somewhere else
 				IsVisible |= NodePortInfo.Port.IsConnected;
 				IsVisible |= !CanFold;
