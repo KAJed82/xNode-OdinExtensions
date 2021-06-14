@@ -15,6 +15,9 @@ namespace XNodeEditor.Odin
 
 			var parent = property.ParentValueProperty;
 #if ODIN_INSPECTOR_3
+			if ( property.IsTreeRoot )
+				return false;
+
 			if ( parent == null )
 				parent = property.Tree.RootProperty;
 #else
