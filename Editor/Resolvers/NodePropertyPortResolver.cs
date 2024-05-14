@@ -325,7 +325,11 @@ namespace XNodeEditor.Odin
 								info.GetEditableAttributesList().Add( listDrawerAttributes );
 							}
 
+#if ODIN_INSPECTOR_3_1
+							listDrawerAttributes.ShowFoldout = true;
+#else
 							listDrawerAttributes.Expanded = true;
+#endif
 							listDrawerAttributes.ShowPaging = false;
 						}
 
