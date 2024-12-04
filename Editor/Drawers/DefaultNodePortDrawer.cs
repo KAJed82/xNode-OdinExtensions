@@ -106,7 +106,7 @@ namespace XNodeEditor.Odin
 				GUILayout.Space( -4 );
 
 				// Collections don't have the same kinds of labels
-				if ( Property.ChildResolver is ICollectionResolver )
+				if ( DrawValue && Property.ChildResolver is ICollectionResolver )
 				{
 					CallNextDrawer( label );
 					return;

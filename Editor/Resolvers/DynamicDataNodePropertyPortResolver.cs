@@ -47,7 +47,7 @@ namespace XNodeEditor.Odin
 				return false;
 
 			NodePortInfo portInfo = resolver.GetNodePortInfo( property.Name );
-			return portInfo != null; // I am a port!
+			return portInfo != null && portInfo.IsDynamicPortList;
 		}
 
 		protected override bool AllowNullValues => false;
